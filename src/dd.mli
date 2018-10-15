@@ -36,7 +36,7 @@ type t = private
   | True
   | False
   | Branch of {
-    var : var; (** the variable on which to branch *)
+    var : var;   (** the variable on which to branch *)
     hi : t;      (** subdiagram for case [var = true] *)
     lo: t;       (** subdiagramm for case [var = false] *)
     id: int;     (** unique identifier for this diagram *)
