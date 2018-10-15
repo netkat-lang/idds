@@ -1,3 +1,7 @@
 (library
   (public_name idd)
+  (libraries
+    base
+  )
+  (preprocess (pps ppx_jane))
 )
