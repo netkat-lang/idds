@@ -33,6 +33,14 @@ let manager () = {
 let ctrue = True
 let cfalse = False
 
+(* let is_true = function
+  | True -> true
+  | _ -> false
+
+let is_false = function
+  | False -> true
+  | _ -> false *)
+
 let branch (mgr : manager) (var : var) (hi : t) (lo : t) : t =
   let triple = (var.idx, id hi, id lo) in
   Hashtbl.find_or_add mgr.branch_cache triple ~default:(fun () ->
