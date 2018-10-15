@@ -7,7 +7,7 @@ type var = { idx : int }
 type t =
   | True
   | False
-  | Branch of { var : Var.t; hi : t; lo: t; id: int }
+  | Branch of { var : var; hi : t; lo: t; id: int }
 
 let id (t : t) : int =
   match t with
@@ -15,15 +15,15 @@ let id (t : t) : int =
   | True -> -1
   | Branch { id; _ } -> id
 
-type manager = {
-  mutable next_id : int;
-  branch_cache : (int * int * int, t) Hashtbl.t;
-}
-
 module Triple = struct
-  type t  = int * int * int
+  type t = int * int * int
     [@@deriving hash, compare, sexp]
 end
+
+type manager = {
+  mutable next_id : int;
+  branch_cache : (Triple.t, t) Hashtbl.t;
+}
 
 let manager () = {
   next_id = 0;
@@ -33,11 +33,11 @@ let manager () = {
 let ctrue = True
 let cfalse = False
 
-let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
+let branch (mgr : manager) (var : var) (hi : t) (lo : t) : t =
   let triple = (var.idx, id hi, id lo) in
   Hashtbl.find_or_add mgr.branch_cache triple ~default:(fun () ->
     let id = mgr.next_id in
-    mgr.next_id <- mgr.next_id + 1;
+    mgr.next_id <- id + 1;
     Branch { var; hi; lo; id; }
   )
 
@@ -50,10 +50,9 @@ let equal (t1 : t) (t2 : t) : bool =
   | _ ->
     false
 
-let eval (t : t) (env : var -> bool) : bool =
+let rec eval (t : t) (env : var -> bool) : bool =
   match t with
   | True -> true
   | False -> false
   | Branch { var; hi; lo; _ } ->
-    if env var then eval hi env else val lo env
-
+    if env var then eval hi env else eval lo env
