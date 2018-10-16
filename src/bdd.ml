@@ -2,6 +2,8 @@ open Base
 
 type t = Dd.t
 
+let eval = Dd.eval
+
 module Pair = struct
   type t = int * int
     [@@deriving sexp, compare, hash]

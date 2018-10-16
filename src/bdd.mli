@@ -11,11 +11,20 @@ type t = private Dd.t
 type manager
 val manager : unit -> manager
 
-val conj : manager -> t -> t -> t
-val disj : manager -> t -> t -> t
-val neg : manager -> t -> t
 
+(** {2 Boolean operations} *)
+
+val conj : manager -> t -> t -> t (** boolean conjunction (logical and) *)
+val disj : manager -> t -> t -> t (** boolean disjunction (logical or) *)
+val neg : manager -> t -> t       (** boolean negation (logical not) *)
 
 (** BDDs form a boolean algebra. *)
 module Make () : Boolean.Algebra
   with type Predicate.t = t
+
+
+(** {2 Semantics} *)
+
+val eval : t -> (Dd.var -> bool) -> bool
+
+
