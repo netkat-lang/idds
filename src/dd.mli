@@ -87,6 +87,5 @@ val eval : t -> (var -> bool) -> bool
     constructed using the same manager: [id u = id v] iff the trees [u] and [v]
     are structurally equal (ignoring IDs).
     Thus, one can use the IDs to test for equality in O(1). IDs are also useful
-    for memoizing functions on DDs.
-*)
+    for memoizing functions on DDs. *)
 val id : t -> int
