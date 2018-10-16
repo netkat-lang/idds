@@ -35,7 +35,8 @@ let conj mgr =
     | Branch { var=var_u; hi=hi_u; lo=lo_u; id=id_u },
       Branch { var=var_v; hi=hi_v; lo=lo_v; id=id_v } ->
       if id_u = id_v then u else
-        Hashtbl.find_or_add mgr.conj_cache (id_u, id_v) ~default:(fun () ->
+        let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
+        Hashtbl.find_or_add mgr.conj_cache key ~default:(fun () ->
           match Int.compare var_u.idx var_v.idx with
           | -1 ->
             let var = var_u in
@@ -68,7 +69,8 @@ let disj mgr =
     | Branch { var=var_u; hi=hi_u; lo=lo_u; id=id_u },
       Branch { var=var_v; hi=hi_v; lo=lo_v; id=id_v } ->
       if id_u = id_v then u else
-        Hashtbl.find_or_add mgr.disj_cache (id_u, id_v) ~default:(fun () ->
+        let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
+        Hashtbl.find_or_add mgr.disj_cache key ~default:(fun () ->
           match Int.compare var_u.idx var_v.idx with
           | -1 ->
             let var = var_u in
