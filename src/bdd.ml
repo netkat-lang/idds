@@ -11,12 +11,14 @@ type manager = {
   dd : Dd.manager;
   conj_cache : (Pair.t, t) Hashtbl.t;
   disj_cache : (Pair.t, t) Hashtbl.t;
+  neg_cache : (int, t) Hashtbl.t
 }
 
 let manager () : manager = {
   dd = Dd.manager ();
   conj_cache = Hashtbl.create (module Pair);
   disj_cache = Hashtbl.create (module Pair);
+  neg_cache = Hashtbl.create (module Int);
 }
 
 let branch mgr var hi lo =
@@ -98,8 +100,16 @@ let neg mgr =
     match u with
     | True -> Dd.cfalse
     | False -> Dd.ctrue
-    | Branch { var; hi; lo; _ } ->
-      Dd.branch mgr.dd var (neg hi) (neg lo)
+    | Branch { var; hi; lo; id } ->
+      begin match Hashtbl.find mgr.neg_cache id with
+      | Some v ->
+        v
+      | None ->
+        let v = Dd.branch mgr.dd var (neg hi) (neg lo) in
+        Hashtbl.add_exn mgr.neg_cache ~key:id ~data:v;
+        Hashtbl.add_exn mgr.neg_cache ~key:Dd.(id v) ~data:u;
+        v
+      end
   in
   neg
 
