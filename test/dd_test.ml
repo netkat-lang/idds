@@ -23,14 +23,24 @@ module WithManager = struct
 
   let t1 = Dd.(ite 0 ctrue ctrue)
   let t1' = Dd.(ite 0 ctrue ctrue)
+  let t1_ = Dd.(ite 1 ctrue ctrue)
   let t2 = Dd.(ite 0 cfalse cfalse)
   let t2' = Dd.(ite 0 cfalse cfalse)
+  let t2_ = Dd.(ite 2 cfalse cfalse)
   let t3 = ite 1 t1 t2
   let t3' = ite 1 t1' t2'
-  let ts = [t1; t2; t3]
+  let ts = [t1; t2; t3; t1_; t2_]
 
   let%test "id branch <> id ctrue" =
     List.for_all ts ~f:(fun t -> Dd.(id t <> id ctrue && id t <> id cfalse))
+
+  let%test "ids distinct" =
+    Dd.id t1 <> Dd.id t2 &&
+    Dd.id t1 <> Dd.id t3 &&
+    Dd.id t2 <> Dd.id t3 &&
+    Dd.id t1 <> Dd.id t1_ &&
+    Dd.id t2 <> Dd.id t2_
+
 
   let%test "branch memoization" =
     phys_equal t1 t1' && 
@@ -49,5 +59,4 @@ module WithManager = struct
     not Dd.(equal t1 t3) &&
     not Dd.(equal t2 t3)
 
-  
 end
