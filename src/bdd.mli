@@ -6,7 +6,7 @@
       - {b Ordered}: the variables along any root-leaf path of a BDD increase
         strictly monotonically.
       - {b Reduced}: The [hi] and [lo] subtrees of any branch are distinct. *)
-type t = Dd.t
+type t = private Dd.t
 
 type manager
 val manager : unit -> manager
