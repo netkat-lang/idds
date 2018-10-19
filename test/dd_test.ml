@@ -42,7 +42,7 @@ module WithManager = struct
     Dd.id t2 <> Dd.id t2_
 
   let%test "branch memoization" =
-    phys_equal t1 t1' && 
+    phys_equal t1 t1' &&
     phys_equal t2 t2' &&
     phys_equal t3 t3'
 

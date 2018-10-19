@@ -1,6 +1,6 @@
 open Base
 
-type var = { idx : int }
+type var = { var : int }
   [@@unboxed]
   [@@deriving compare, sexp]
 
@@ -34,7 +34,7 @@ let ctrue = True
 let cfalse = False
 
 let branch (mgr : manager) (var : var) (hi : t) (lo : t) : t =
-  let triple = (var.idx, id hi, id lo) in
+  let triple = (var.var, id hi, id lo) in
   Hashtbl.find_or_add mgr.branch_cache triple ~default:(fun () ->
     let id = mgr.next_id in
     mgr.next_id <- id + 1;

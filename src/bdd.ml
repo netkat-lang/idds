@@ -131,8 +131,7 @@ module Make () : Boolean.Algebra with type Predicate.t = t = struct
   let tru = Dd.ctrue
   let fls = Dd.cfalse
   let var s =
-    let idx = Hashtbl.find_exn vars s in
-    let var = Dd.{ idx } in
+    let var = Dd.{ var = Hashtbl.find_exn vars s } in
     Dd.branch mgr.dd var tru fls
 
   module Predicate = struct
