@@ -2,7 +2,12 @@ open Base
 
 type t = Dd.t
 
-let eval = Dd.eval
+let eval t env =
+  let env Dd.{idx} = env idx in
+  Dd.eval t env
+let equal = Dd.equal
+let ctrue = Dd.ctrue
+let cfalse = Dd.cfalse
 
 module Pair = struct
   type t = int * int
@@ -115,9 +120,15 @@ let neg mgr =
   in
   neg
 
+let test mgr idx hi lo =
+  let v = Dd.{idx} in
+  disj mgr
+    (conj mgr (branch mgr.dd v ctrue cfalse) hi)
+    (conj mgr (branch mgr.dd v cfalse ctrue) lo)
 
 
-module Make () : Boolean.Algebra with type Predicate.t = t = struct
+
+module Make () : Boolean.Algebra with type t = t = struct
   let vars : (string, int) Hashtbl.t = Hashtbl.create (module String)
   let next_idx = ref 0
   let declare_var s =
@@ -128,16 +139,17 @@ module Make () : Boolean.Algebra with type Predicate.t = t = struct
     `Ok
   let mgr = manager ()
 
+  type nonrec t = t
   let tru = Dd.ctrue
   let fls = Dd.cfalse
+  let of_bool = function
+    | true -> tru
+    | false -> fls
   let var s =
     let var = Dd.{ var = Hashtbl.find_exn vars s } in
     Dd.branch mgr.dd var tru fls
-
-  module Predicate = struct
-    type nonrec t = t
-    let ( && ) = conj mgr
-    let ( || ) = disj mgr
-    let ( ~~ ) = neg mgr
-  end
+  let ( && ) = conj mgr
+  let ( || ) = disj mgr
+  let ( ! ) = neg mgr
+  let ( == ) = equal
 end
