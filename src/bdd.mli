@@ -22,7 +22,10 @@ val cfalse : t
 val conj : manager -> t -> t -> t (** boolean conjunction (logical and) *)
 val disj : manager -> t -> t -> t (** boolean disjunction (logical or) *)
 val neg : manager -> t -> t       (** boolean negation (logical not) *)
-val test : manager -> int -> t -> t -> t
+
+(** [ite mgr i u v] behaves like [u] when variable [i] is true, and like [v]
+    otherwise.*)
+val ite : manager -> int -> t -> t -> t
 
 (** BDDs form a boolean algebra. *)
 module Make () : Boolean.Algebra

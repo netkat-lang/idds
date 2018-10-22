@@ -120,7 +120,7 @@ let neg mgr =
   in
   neg
 
-let test mgr idx hi lo =
+let ite mgr idx hi lo =
   let v = Dd.{idx} in
   disj mgr
     (conj mgr (branch mgr.dd v ctrue cfalse) hi)
@@ -146,7 +146,7 @@ module Make () : Boolean.Algebra with type t = t = struct
     | true -> tru
     | false -> fls
   let var s =
-    let var = Dd.{ var = Hashtbl.find_exn vars s } in
+    let var = Dd.{ idx = Hashtbl.find_exn vars s } in
     Dd.branch mgr.dd var tru fls
   let ( && ) = conj mgr
   let ( || ) = disj mgr
