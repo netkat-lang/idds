@@ -44,4 +44,18 @@ module Tests = struct
       )
     )
 
+  let%test "ite correct" =
+    List.for_all all_two_trees ~f:(fun ((bdd1, _), (bdd2, _)) ->
+      List.init vars ~f:(fun i -> i)
+      |> List.for_all ~f:(fun var ->
+        let bdd = Bdd.ite mgr var bdd1 bdd2 in
+        List.for_all envs ~f:(fun env ->
+          if env var then
+            Bool.equal (Bdd.eval bdd env) (Bdd.eval bdd1 env)
+          else
+            Bool.equal (Bdd.eval bdd env) (Bdd.eval bdd2 env)
+        )
+      )
+    )
+
 end
