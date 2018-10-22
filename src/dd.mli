@@ -1,6 +1,9 @@
 (** Decision Diagrams (DDs).
 
-    This module serves as the base for the BDD and IDD modules.
+    This module serves as the base for the BDD and IDD modules. It provides
+    hash-consed decision trees, but does not enforce any structural invariants
+    on these trees beyond guranteeing that structural equality coincides with
+    physical equality.
 
     A decision diagram (DD) is a finite binary tree whose leaves are labeled
     with the constants true or false, and whose branches are labeled with
@@ -11,7 +14,8 @@
     tree in the following way:
       - If the tree is a leaf, return its boolean label.
       - If the tree is a branch labeled with the variable [x], recursively
-        evaluate {ul
+        evaluate
+        {ul
           {- the subtree [hi] if [x = true], or}
           {- the subtree [lo] if [x = false].}
         }
@@ -26,7 +30,8 @@
 
 (** {2 Types} *)
 
-(** Boolean variable on which a DD can branch. *)
+(** Boolean variable on which a DD can branch. Morally just an integer, but
+    modeled as a record for type safety. *)
 type var = { idx : int }
   [@@unboxed]
   [@@deriving sexp]
@@ -62,8 +67,8 @@ val cfalse : t
 (** The constant true. *)
 val ctrue : t
 
-(** [branch var hi lo] is the diagram that behaves like [hi] when [var = true],
-    and like [lo] when [var = false]. *)
+(** [branch mgr var hi lo] is the diagram that behaves like [hi] when
+    [var = true], and like [lo] when [var = false]. *)
 val branch : manager -> var -> t -> t -> t
 
 
