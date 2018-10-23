@@ -31,6 +31,11 @@ let manager () : manager = {
 let branch mgr var hi lo =
   let i = Dd.(var.idx) in
   match i % 2 with
+  | 1 -> (* var is output variable *)
+    begin match hi, lo with
+    | False, False -> hi
+    | _ -> Dd.branch mgr var hi lo
+    end
   | 0 -> (* var is input variable *)
     if equal hi lo then hi else
     let i' = i + 1 in
@@ -46,11 +51,6 @@ let branch mgr var hi lo =
     | Branch { hi=False; lo=l; var={idx}; _ }, _ when idx = i' && equal lo l -> lo
     | _, Branch { hi=h; lo=False; var={idx}; _ } when idx = i' && equal hi h -> hi
     | _ -> if equal hi lo then hi else Dd.branch mgr var hi lo
-    end
-  | 1 -> (* var is output variable *)
-    begin match hi, lo with
-    | False, False -> hi
-    | _ -> Dd.branch mgr var hi lo
     end
   | _ ->
     assert false
