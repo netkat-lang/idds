@@ -3,8 +3,9 @@ open Base
 type t = Dd.t
 
 let eval t env =
-  let env Dd.{idx} = env idx in
+  let env (Dd.{idx} : Dd.Var.t) = env idx in
   Dd.eval t env
+
 let equal = Dd.equal
 let ctrue = Dd.ctrue
 let cfalse = Dd.cfalse
@@ -121,7 +122,7 @@ let neg mgr =
   neg
 
 let ite mgr idx hi lo =
-  let v = Dd.{idx} in
+  let v = Dd.Var.{idx} in
   disj mgr
     (conj mgr (branch mgr.dd v ctrue cfalse) hi)
     (conj mgr (branch mgr.dd v cfalse ctrue) lo)
@@ -146,7 +147,7 @@ module Make () : Boolean.Algebra with type t = t = struct
     | true -> tru
     | false -> fls
   let var s =
-    let var = Dd.{ idx = Hashtbl.find_exn vars s } in
+    let var = Dd.Var.{ idx = Hashtbl.find_exn vars s } in
     Dd.branch mgr.dd var tru fls
   let ( && ) = conj mgr
   let ( || ) = disj mgr

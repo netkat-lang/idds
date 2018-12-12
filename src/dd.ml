@@ -1,13 +1,19 @@
 open Base
 
-type var = { idx : int }
-  [@@unboxed]
-  [@@deriving compare, sexp]
+module Var = struct
+  module T = struct
+    type t = { idx : int }
+    [@@unboxed]
+    [@@deriving compare, sexp]
+  end
+  include T
+  include Comparable.Make(T)
+end
 
 type t =
   | True
   | False
-  | Branch of { var : var; hi : t; lo: t; id: int }
+  | Branch of { var : Var.t; hi : t; lo: t; id: int }
 
 let id (t : t) : int =
   match t with
@@ -33,7 +39,7 @@ let manager () = {
 let ctrue = True
 let cfalse = False
 
-let branch (mgr : manager) (var : var) (hi : t) (lo : t) : t =
+let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
   let triple = (var.idx, id hi, id lo) in
   Hashtbl.find_or_add mgr.branch_cache triple ~default:(fun () ->
     let id = mgr.next_id in
@@ -50,7 +56,7 @@ let equal (t1 : t) (t2 : t) : bool =
   | _ ->
     false
 
-let rec eval (t : t) (env : var -> bool) : bool =
+let rec eval (t : t) (env : Var.t -> bool) : bool =
   match t with
   | True -> true
   | False -> false

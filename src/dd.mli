@@ -27,21 +27,26 @@
     {{:https://en.wikipedia.org/wiki/Hash_consing} hash consed}.
 *)
 
+open Base
+
 
 (** {2 Types} *)
 
 (** Boolean variable on which a DD can branch. Morally just an integer, but
     modeled as a record for type safety. *)
-type var = { idx : int }
-  [@@unboxed]
-  [@@deriving sexp]
+module Var : sig
+  type t = { idx : int }
+    [@@unboxed]
+    [@@deriving sexp]
+  include Comparable.S with type t := t
+end
 
 (** The type of a decision diagram (DD). *)
 type t = private
   | True
   | False
   | Branch of {
-    var : var;   (** the variable on which to branch *)
+    var : Var.t;   (** the variable on which to branch *)
     hi : t;      (** subdiagram for case [var = true] *)
     lo: t;       (** subdiagramm for case [var = false] *)
     id: int;     (** unique identifier for this diagram *)
@@ -69,7 +74,7 @@ val ctrue : t
 
 (** [branch mgr var hi lo] is the diagram that behaves like [hi] when
     [var = true], and like [lo] when [var = false]. *)
-val branch : manager -> var -> t -> t -> t
+val branch : manager -> Var.t -> t -> t -> t
 
 
 (** {2 Generic operations on DDs} *)
@@ -82,7 +87,7 @@ val equal : t -> t -> bool
 
 (** [eval t env] evaluates the decision diagram [t] in the given environment
     [env : var -> bool].*)
-val eval : t -> (var -> bool) -> bool
+val eval : t -> (Var.t -> bool) -> bool
 
 
 (** {2 Low-level API} *)

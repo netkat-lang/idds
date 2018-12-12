@@ -3,7 +3,7 @@ open Base
 type t = Dd.t
 
 let eval t env =
-  let env Dd.{idx} = env idx in
+  let env (Dd.{idx} : Dd.Var.t) = env idx in
   Dd.eval t env
 
 let equal = Dd.equal
@@ -27,15 +27,21 @@ let manager () : manager = {
   neg_cache = Hashtbl.create (module Int);
 }
 
+let in_var (var : Dd.Var.t) : bool =
+  var.idx % 2 = 0
+  [@@inline]
 
-let branch mgr (var : Dd.var) (hi : t) (lo : t) : t =
-  match var.idx % 2 with
-  | 1 -> (* var is output variable *)
+let out_var (var : Dd.Var.t) : bool =
+  var.idx % 2 = 1
+  [@@inline]
+
+let branch mgr (var : Dd.Var.t) (hi : t) (lo : t) : t =
+  if out_var var then
     begin match hi, lo with
     | False, False -> hi
     | _ -> Dd.branch mgr var hi lo
     end
-  | 0 -> (* var is input variable *)
+  else
     if equal hi lo then hi else
     let i = var.idx + 1 in
     let hi = match hi with
@@ -51,5 +57,7 @@ let branch mgr (var : Dd.var) (hi : t) (lo : t) : t =
     | _, Branch { hi=h; lo=False; var={idx}; _ } when idx = i && equal hi h -> hi
     | _ -> if equal hi lo then hi else Dd.branch mgr var hi lo
     end
-  | _ ->
-    assert false
+
+(* let apply op cache =
+  let rec apply u v =
+ *)

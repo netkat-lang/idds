@@ -1,15 +1,15 @@
-module type BinRel = struct
-  type ('x, 'y) t
+module type BinRel = sig
+  type t
+  type d
+  type ds
 
-  type 'x set = ('x, unit) t
+  val id : t
+  val zero : t
 
-  val id : ('x, 'x) t
-  val zero : ('x, 'y) t
+  val const : d -> t
+  val test : ds -> t
 
-  val test : 'x set -> ('x, 'x) t
-  val const : 'x -> ('x, 'x) t
-
-  val compose : ('x, 'y) t -> ('y, 'z) t -> ('x, 'z) t
-  val union : ('x, 'y) t -> ('x, 'y) t -> ('x, 'y) t
-  val inters : ('x, 'y) t -> ('x, 'y) t -> ('x, 'y) t
+  val compose : t -> t -> t
+  val union : t -> t -> t
+  val inters : t -> t -> t
 end
