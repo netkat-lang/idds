@@ -1,15 +1,5 @@
 open Base
 
-module Var = struct
-  module T = struct
-    type t = { idx : int }
-    [@@unboxed]
-    [@@deriving compare, sexp]
-  end
-  include T
-  include Comparable.Make(T)
-end
-
 type t =
   | True
   | False
@@ -40,7 +30,7 @@ let ctrue = True
 let cfalse = False
 
 let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
-  let triple = (var.idx, id hi, id lo) in
+  let triple = (var.id, id hi, id lo) in
   Hashtbl.find_or_add mgr.branch_cache triple ~default:(fun () ->
     let id = mgr.next_id in
     mgr.next_id <- id + 1;
@@ -55,10 +45,3 @@ let equal (t1 : t) (t2 : t) : bool =
     id1 = id2
   | _ ->
     false
-
-let rec eval (t : t) (env : Var.t -> bool) : bool =
-  match t with
-  | True -> true
-  | False -> false
-  | Branch { var; hi; lo; _ } ->
-    if env var then eval hi env else eval lo env

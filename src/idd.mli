@@ -17,6 +17,4 @@ val manager : unit -> manager
 
 (** {2 Semantics} *)
 
-val eval : t -> (int -> bool) -> bool
-
 

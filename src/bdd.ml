@@ -2,9 +2,12 @@ open Base
 
 type t = Dd.t
 
-let eval t env =
-  let env (Dd.{idx} : Dd.Var.t) = env idx in
-  Dd.eval t env
+let rec eval (t : t) (env : int -> bool) : bool =
+  match t with
+  | True -> true
+  | False -> false
+  | Branch { var=Var.{id}; hi; lo; _ } ->
+    if env id then eval hi env else eval lo env
 
 let equal = Dd.equal
 let ctrue = Dd.ctrue
@@ -47,7 +50,7 @@ let conj mgr =
       if id_u = id_v then u else
         let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
         Hashtbl.find_or_add mgr.conj_cache key ~default:(fun () ->
-          match Int.compare var_u.idx var_v.idx with
+          match Int.compare var_u.id var_v.id with
           | -1 ->
             let var = var_u in
             let hi = conj hi_u v in
@@ -81,7 +84,7 @@ let disj mgr =
       if id_u = id_v then u else
         let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
         Hashtbl.find_or_add mgr.disj_cache key ~default:(fun () ->
-          match Int.compare var_u.idx var_v.idx with
+          match Int.compare var_u.id var_v.id with
           | -1 ->
             let var = var_u in
             let hi = disj hi_u v in
@@ -121,8 +124,8 @@ let neg mgr =
   in
   neg
 
-let ite mgr idx hi lo =
-  let v = Dd.Var.{idx} in
+let ite mgr id hi lo =
+  let v = Var.{id} in
   disj mgr
     (conj mgr (branch mgr.dd v ctrue cfalse) hi)
     (conj mgr (branch mgr.dd v cfalse ctrue) lo)
@@ -131,12 +134,12 @@ let ite mgr idx hi lo =
 
 module Make () : Boolean.Algebra with type t = t = struct
   let vars : (string, int) Hashtbl.t = Hashtbl.create (module String)
-  let next_idx = ref 0
+  let next_id = ref 0
   let declare_var s =
     if Hashtbl.mem vars s then `Duplicate else
-    let idx = !next_idx in
-    Int.incr next_idx;
-    Hashtbl.add_exn vars ~key:s ~data:idx;
+    let id = !next_id in
+    Int.incr next_id;
+    Hashtbl.add_exn vars ~key:s ~data:id;
     `Ok
   let mgr = manager ()
 
@@ -147,7 +150,7 @@ module Make () : Boolean.Algebra with type t = t = struct
     | true -> tru
     | false -> fls
   let var s =
-    let var = Dd.Var.{ idx = Hashtbl.find_exn vars s } in
+    let var = Var.{ id = Hashtbl.find_exn vars s } in
     Dd.branch mgr.dd var tru fls
   let ( && ) = conj mgr
   let ( || ) = disj mgr

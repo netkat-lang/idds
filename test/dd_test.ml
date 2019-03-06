@@ -1,4 +1,4 @@
-open Idd
+open Idd_
 open Base
 
 module Basic = struct
@@ -19,7 +19,7 @@ end
 
 module WithManager = struct
   let mgr = Dd.manager ()
-  let ite idx = Dd.(branch mgr { idx })
+  let ite id = Dd.branch mgr Var.{id}
 
   let t1 = Dd.(ite 0 ctrue ctrue)
   let t1' = Dd.(ite 0 ctrue ctrue)
@@ -58,29 +58,5 @@ module WithManager = struct
     not Dd.(equal t1 t3) &&
     not Dd.(equal t2 t3)
 
-  let rec all_trees n : (Dd.t * ((Dd.var -> bool) -> bool)) list =
-    if n <= 0 then
-      [(Dd.ctrue, fun _ -> true); (Dd.cfalse, fun _ -> false)]
-    else
-      let ts = all_trees (n-1) in
-      List.cartesian_product ts ts
-      |> List.map ~f:(fun ((hi, f_hi), (lo, f_lo)) ->
-          ite n hi lo,
-          fun env -> if env Dd.{idx = n} then f_hi env else f_lo env
-        )
-      |> (@) ts
-
-  let%test "eval correct, for <= 3 vars exhaustive" =
-    let n = 3 in
-    let trees = all_trees n in
-    let envs = List.init (2**n) ~f:(fun k Dd.{idx} ->
-      (k lsr idx) % 2 = 1
-    )
-    in
-    List.for_all envs ~f:(fun env ->
-      List.for_all trees ~f:(fun (t, sem) ->
-        Bool.equal (Dd.eval t env) (sem env)
-      )
-    )
 
 end

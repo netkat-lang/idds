@@ -1,12 +1,19 @@
-.PHONY: all build clean 
-
-all: build
+.PHONY: build install uninstall test clean doc
 
 build:
-	dune build --profile release
+	dune build
+
+test:
+	dune runtest -f --no-buffer
 
 install:
 	dune install
 
+uninstall:
+	dune uninstall
+
+doc:
+	dune build @doc --profile release
+
 clean:
-	rm -rf _build *.install
+	dune clean
