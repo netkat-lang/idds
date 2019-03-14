@@ -19,7 +19,7 @@ end
 
 module WithManager = struct
   let mgr = Dd.manager ()
-  let ite id = Dd.branch mgr Var.{id}
+  let ite id = Dd.branch mgr (Var.inp id)
 
   let t1 = Dd.(ite 0 ctrue ctrue)
   let t1' = Dd.(ite 0 ctrue ctrue)

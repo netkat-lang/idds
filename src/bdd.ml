@@ -2,7 +2,7 @@ open Base
 
 type t = Dd.t
 
-let rec eval (t : t) (env : Var.t -> bool) : bool =
+let rec eval (t : t) ~(env : Var.t -> bool) : bool =
   match t with
   | True -> true
   | False -> false

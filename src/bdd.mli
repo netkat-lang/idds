@@ -42,6 +42,6 @@ module Make () : Boolean.Algebra
 
 (** {2 Semantics} *)
 
-val eval : t -> (Var.t -> bool) -> bool
+val eval : t -> env:(Var.t -> bool) -> bool
 
 

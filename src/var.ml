@@ -23,8 +23,10 @@ let is_out (var : t) : bool =
   [@@inline]
 
 let to_out (var : t) : t =
-  if var.id mod 2 == 1 then var else { id = var.id + 1 }
+  if var.id % 2 = 1 then var else { id = var.id + 1 }
 
 let is_in_out_pair inp out : bool =
   is_inp inp && is_out out && (inp.id + 1 = out.id)
+
+let index (t : t) : int = t.id / 2
 

@@ -8,18 +8,18 @@ module Tests = struct
   (* set up *)
   let mgr = Bdd.manager ()
   let vars = 3
-  let envs = List.init (2**vars) ~f:(fun k i ->
-    (k lsr i) % 2 = 1
+  let envs = List.init (2**vars) ~f:(fun k var ->
+    (k lsr (Var.index var)) % 2 = 1
   )
-  let rec mk_all_trees n : (Bdd.t * ((int -> bool) -> bool)) list =
+  let rec mk_all_trees n : (Bdd.t * ((Var.t -> bool) -> bool)) list =
     if n <= 0 then
       [(Bdd.ctrue, fun _ -> true); (Bdd.cfalse, fun _ -> false)]
     else
       let ts = mk_all_trees (n-1) in
       List.cartesian_product ts ts
       |> List.map ~f:(fun ((hi, f_hi), (lo, f_lo)) ->
-          Bdd.ite mgr n hi lo,
-          fun env -> if env n then f_hi env else f_lo env
+          Bdd.ite mgr (Var.inp n) hi lo,
+          fun env -> if env (Var.inp n) then f_hi env else f_lo env
         )
   let all_trees = mk_all_trees vars
   let all_two_trees = List.cartesian_product all_trees all_trees
@@ -31,7 +31,7 @@ module Tests = struct
         let bdd = bdd_op bdd1 bdd2 in
         let bool env = bool_op (bool1 env) (bool2 env) in
         List.for_all envs ~f:(fun env ->
-          Bool.equal (Bdd.eval bdd env) (bool env)
+          Bool.equal (Bdd.eval bdd ~env) (bool env)
         )
       )
     )
@@ -40,7 +40,7 @@ module Tests = struct
     List.for_all all_trees ~f:(fun (bdd, _) ->
       let bdd' = Bdd.neg mgr bdd in
       List.for_all envs ~f:(fun env ->
-        not @@ Bool.equal (Bdd.eval bdd env) (Bdd.eval bdd' env)
+        not @@ Bool.equal (Bdd.eval bdd ~env) (Bdd.eval bdd' ~env)
       )
     )
 
@@ -48,12 +48,12 @@ module Tests = struct
     List.for_all all_two_trees ~f:(fun ((bdd1, _), (bdd2, _)) ->
       List.init vars ~f:(fun i -> i)
       |> List.for_all ~f:(fun var ->
-        let bdd = Bdd.ite mgr var bdd1 bdd2 in
+        let bdd = Bdd.ite mgr (Var.inp var) bdd1 bdd2 in
         List.for_all envs ~f:(fun env ->
-          if env var then
-            Bool.equal (Bdd.eval bdd env) (Bdd.eval bdd1 env)
+          if env (Var.inp var) then
+            Bool.equal (Bdd.eval bdd ~env) (Bdd.eval bdd1 ~env)
           else
-            Bool.equal (Bdd.eval bdd env) (Bdd.eval bdd2 env)
+            Bool.equal (Bdd.eval bdd ~env) (Bdd.eval bdd2 ~env)
         )
       )
     )
