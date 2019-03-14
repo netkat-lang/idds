@@ -49,8 +49,8 @@ let branch mgr (var : Var.t) (hi : t) (lo : t) : t =
       | _ -> lo
     in
     begin match hi, lo with
-    | Branch { hi=False; lo=l; var={id}; _ }, _ when id = i && equal lo l -> lo
-    | _, Branch { hi=h; lo=False; var={id}; _ } when id = i && equal hi h -> hi
+    | Branch { hi=False; lo=l; var={id}; _ }, _ when id = i && equal lo l -> hi
+    | _, Branch { hi=h; lo=False; var={id}; _ } when id = i && equal hi h -> lo
     | _ -> if equal hi lo then hi else Dd.branch mgr var hi lo
     end
 
