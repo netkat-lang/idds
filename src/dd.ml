@@ -12,7 +12,7 @@ let id (t : t) : int =
   | Branch { id; _ } -> id
 
 module Triple = struct
-  type t = int * int * int
+  type t = Var.t * int * int
     [@@deriving hash, compare, sexp]
 end
 
@@ -30,7 +30,7 @@ let ctrue = True
 let cfalse = False
 
 let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
-  let triple = (var.id, id hi, id lo) in
+  let triple = (var, id hi, id lo) in
   Hashtbl.find_or_add mgr.branch_cache triple ~default:(fun () ->
     let id = mgr.next_id in
     mgr.next_id <- id + 1;

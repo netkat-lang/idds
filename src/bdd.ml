@@ -2,12 +2,12 @@ open Base
 
 type t = Dd.t
 
-let rec eval (t : t) (env : int -> bool) : bool =
+let rec eval (t : t) (env : Var.t -> bool) : bool =
   match t with
   | True -> true
   | False -> false
-  | Branch { var=Var.{id}; hi; lo; _ } ->
-    if env id then eval hi env else eval lo env
+  | Branch { var; hi; lo; _ } ->
+    if env var then eval hi env else eval lo env
 
 let equal = Dd.equal
 let ctrue = Dd.ctrue
@@ -50,7 +50,7 @@ let conj mgr =
       if id_u = id_v then u else
         let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
         Hashtbl.find_or_add mgr.conj_cache key ~default:(fun () ->
-          match Int.compare var_u.id var_v.id with
+          match Var.compare var_u var_v with
           | -1 ->
             let var = var_u in
             let hi = conj hi_u v in
@@ -84,7 +84,7 @@ let disj mgr =
       if id_u = id_v then u else
         let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
         Hashtbl.find_or_add mgr.disj_cache key ~default:(fun () ->
-          match Int.compare var_u.id var_v.id with
+          match Var.compare var_u var_v with
           | -1 ->
             let var = var_u in
             let hi = disj hi_u v in
@@ -124,11 +124,10 @@ let neg mgr =
   in
   neg
 
-let ite mgr id hi lo =
-  let v = Var.{id} in
+let ite mgr var hi lo =
   disj mgr
-    (conj mgr (branch mgr.dd v ctrue cfalse) hi)
-    (conj mgr (branch mgr.dd v cfalse ctrue) lo)
+    (conj mgr (branch mgr.dd var ctrue cfalse) hi)
+    (conj mgr (branch mgr.dd var cfalse ctrue) lo)
 
 
 
@@ -150,7 +149,7 @@ module Make () : Boolean.Algebra with type t = t = struct
     | true -> tru
     | false -> fls
   let var s =
-    let var = Var.{ id = Hashtbl.find_exn vars s } in
+    let var = Var.inp (Hashtbl.find_exn vars s) in
     Dd.branch mgr.dd var tru fls
   let ( && ) = conj mgr
   let ( || ) = disj mgr

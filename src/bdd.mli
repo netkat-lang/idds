@@ -33,7 +33,7 @@ val neg : manager -> t -> t
 
 (** [ite mgr i u v] behaves like [u] when variable [i] is true, and like [v]
     otherwise.*)
-val ite : manager -> int -> t -> t -> t
+val ite : manager -> Var.t -> t -> t -> t
 
 (** BDDs form a boolean algebra. *)
 module Make () : Boolean.Algebra
@@ -42,6 +42,6 @@ module Make () : Boolean.Algebra
 
 (** {2 Semantics} *)
 
-val eval : t -> (int -> bool) -> bool
+val eval : t -> (Var.t -> bool) -> bool
 
 

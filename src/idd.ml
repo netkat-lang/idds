@@ -23,34 +23,33 @@ let manager () : manager = {
   neg_cache = Hashtbl.create (module Int);
 }
 
-let in_var (var : Var.t) : bool =
-  var.id % 2 = 0
-  [@@inline]
-
-let out_var (var : Var.t) : bool =
-  var.id % 2 = 1
-  [@@inline]
-
-let branch mgr (var : Var.t) (hi : t) (lo : t) : t =
-  if out_var var then
+let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
+  if Var.is_out var then
     begin match hi, lo with
     | False, False -> hi
-    | _ -> Dd.branch mgr var hi lo
+    | _ -> Dd.branch mgr.dd var hi lo
     end
   else
     if equal hi lo then hi else
-    let i = var.id + 1 in
     let hi = match hi with
-      | Branch { hi; lo=False; var={id}; _ } when id = i -> hi
+      | Branch { hi; lo=False; var=var'; _ }
+        when Var.(equal (to_out var) var') ->
+        hi
       | _ -> hi
     in
     let lo = match lo with
-      | Branch { hi=False; lo; var={id}; _ } when id = i -> lo
+      | Branch { hi=False; lo; var=var'; _ }
+        when Var.(equal (to_out var) var') ->
+        lo
       | _ -> lo
     in
     begin match hi, lo with
-    | Branch { hi=False; lo=l; var={id}; _ }, _ when id = i && equal lo l -> hi
-    | _, Branch { hi=h; lo=False; var={id}; _ } when id = i && equal hi h -> lo
-    | _ -> if equal hi lo then hi else Dd.branch mgr var hi lo
+    | Branch { hi=False; lo=l; var=var'; _ }, _
+      when Var.(equal (to_out var) var') && equal lo l ->
+      hi
+    | _, Branch { hi=h; lo=False; var=var'; _ }
+      when Var.(equal (to_out var) var') && equal hi h ->
+      lo
+    | _ -> if equal hi lo then hi else Dd.branch mgr.dd var hi lo
     end
 
