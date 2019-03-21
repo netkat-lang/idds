@@ -4,7 +4,6 @@
   (wrapped true)
   (libraries
     base
-    stdio
   )
   (preprocess (pps ppx_jane ppx_deriving.std))
 )
