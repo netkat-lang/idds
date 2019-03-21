@@ -35,4 +35,41 @@ module Basic = struct
     List.for_all trees ~f:(fun t ->
       Idd.(equal t empty) || not Idd.(equal (branch mgr y99 t t) t)
     )
+
+  let small_trees = mk_all_trees 3
+                                              
+  let%test "iia" =
+    List.cartesian_product small_trees small_trees |>
+    List.for_all ~f:(fun (u,v) -> Idd.(equal 
+    (branch mgr (Var.inp 10) (branch mgr (Var.out 10) u empty) v)
+    (branch mgr (Var.inp 10) u v)))
+
+  let%test "iib" =
+    List.cartesian_product small_trees small_trees |>
+    List.for_all ~f:(fun (u,v) -> Idd.(equal 
+    (branch mgr (Var.inp 10) u (branch mgr (Var.out 10) empty v))
+    (branch mgr (Var.inp 10) u v)))
+
+  let%test "iiia" =
+    List.for_all trees ~f:(fun u -> Idd.(equal 
+    (branch mgr (Var.inp 10) (branch mgr (Var.out 10) empty u) u)
+    (branch mgr (Var.out 10) empty u)))
+
+  let%test "iiib" =
+    List.for_all trees ~f:(fun u -> Idd.(equal 
+    (branch mgr (Var.inp 10) u (branch mgr (Var.out 10) u empty))
+    (branch mgr (Var.out 10) u empty)))
+
+  let%test "eval" =
+    Idd.(
+      not (eval empty (fun _ -> true) 10) &&
+      eval ident (fun _ -> true) 1  &&
+      not (eval ident (fun x -> Var.equal x (Var.inp 0)) 1) && 
+      let branchtree = Idd.(branch mgr x2 empty ident) in 
+      not (eval branchtree (fun _ -> true) 3) &&
+      eval branchtree (fun x -> not ((Var.index x) = 2)) 3 &&
+      not (eval branchtree (fun x -> not (Var.equal x x2)) 3) &&
+      let outvartree = Idd.(branch mgr y2 empty ident) in
+      eval outvartree (fun x -> not (Var.equal x y2)) 3
+    ) 
 end

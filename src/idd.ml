@@ -23,6 +23,21 @@ let manager () : manager = {
   neg_cache = Hashtbl.create (module Int);
 }
 
+let ident = Dd.ctrue
+let empty = Dd.cfalse
+
+let rec eval' expl (tree:t) (env:Var.t -> bool) (n:int) =
+  match tree with
+  | False -> false
+  | True -> List.range 0 n |> List.for_all ~f:(fun i -> 
+      Set.mem expl i || Bool.equal (env (Var.inp i)) (env (Var.out i)))
+  | Branch { var; hi; lo } when Var.is_inp var ->
+    eval' expl (if (env var) then hi else lo) env n
+  | Branch { var; hi; lo } ->
+    eval' (Set.add expl (Var.index var)) (if (env var) then hi else lo) env n
+
+let eval = eval' (Set.empty (module Int)) 
+
 let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
   if Var.is_out var then
     begin match hi, lo with
@@ -52,4 +67,3 @@ let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
       lo
     | _ -> if equal hi lo then hi else Dd.branch mgr.dd var hi lo
     end
-
