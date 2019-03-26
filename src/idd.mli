@@ -35,7 +35,10 @@ val equal : t -> t -> bool
 
 (** {2 Semantics} *)
 
-(** [eval tree env n] evaluates idd [tree] in environment [env] where the 
+(** [eval tree env n] evaluates idd [tree] in environment [env] where the
     variable indices are 0,...,[n]-1 *)
 val eval : t -> (Var.t -> bool) -> int -> bool
 
+module Rel : Algebra.KAT with
+  type b := Bdd.t and
+  type t := t

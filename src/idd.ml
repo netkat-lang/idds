@@ -29,14 +29,14 @@ let empty = Dd.cfalse
 let rec eval' expl (tree:t) (env:Var.t -> bool) (n:int) =
   match tree with
   | False -> false
-  | True -> List.range 0 n |> List.for_all ~f:(fun i -> 
+  | True -> List.range 0 n |> List.for_all ~f:(fun i ->
       Set.mem expl i || Bool.equal (env (Var.inp i)) (env (Var.out i)))
   | Branch { var; hi; lo } when Var.is_inp var ->
     eval' expl (if (env var) then hi else lo) env n
   | Branch { var; hi; lo } ->
     eval' (Set.add expl (Var.index var)) (if (env var) then hi else lo) env n
 
-let eval = eval' (Set.empty (module Int)) 
+let eval = eval' (Set.empty (module Int))
 
 let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
   if Var.is_out var then
@@ -67,3 +67,28 @@ let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
       lo
     | _ -> if equal hi lo then hi else Dd.branch mgr.dd var hi lo
     end
+
+
+(* relational operations *)
+module Rel = struct
+
+  (* booleans *)
+  type b = Bdd.t
+  let ctrue = Bdd.ctrue
+  let cfalse = Bdd.cfalse
+  let conj _ _ = failwith "todo"
+  let disj _ _ = failwith "todo"
+  let neg _ = failwith "todo"
+
+  (* relations *)
+  type nonrec t = t
+  let zero = empty
+  let one = ident
+  (* FIXME: check that BDD contains only input variables *)
+  let test (bdd : Bdd.t) : t = (bdd :> t)
+
+  let seq _ _ = failwith "todo"
+  let union _ _ = failwith "todo"
+  let star _ = failwith "todo"
+
+end
