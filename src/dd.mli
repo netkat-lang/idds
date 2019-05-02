@@ -87,3 +87,8 @@ val equal : t -> t -> bool
     Thus, one can use the IDs to test for equality in O(1). IDs are also useful
     for memoizing functions on DDs. *)
 val id : t -> int
+
+
+(** The index of a diagram is the index of its top-most variable, or -1 if the
+    diagram is a leaf. *)
+val index : t -> int
