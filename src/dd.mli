@@ -89,6 +89,3 @@ val equal : t -> t -> bool
 val id : t -> int
 
 
-(** The index of a diagram is the index of its top-most variable, or -1 if the
-    diagram is a leaf. *)
-val index : t -> int

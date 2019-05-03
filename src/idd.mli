@@ -11,7 +11,6 @@ type manager
 
 val manager : unit -> manager
 
-
 (** {2 Constructors} *)
 
 (** The identity relation. *)
@@ -24,6 +23,9 @@ val empty : t
     [var = true], and like [lo] when [var = false]. *)
 val branch : manager -> Var.t -> t -> t -> t
 
+(** [apply mgr op t0 t1] is [t] such that 
+    [Bool.equal (op (eval t0 env n) (eval t1 env n)) (eval t env n)] *)
+val apply : manager -> (bool -> bool -> bool) -> t -> t -> t
 
 (** {2 Boolean operations} *)
 
@@ -36,8 +38,13 @@ val equal : t -> t -> bool
 (** {2 Semantics} *)
 
 (** [eval tree env n] evaluates idd [tree] in environment [env] where the
-    variable indices are 0,...,[n]-1 *)
+    variable indices are 0,...,[n-1] *)
 val eval : t -> (Var.t -> bool) -> int -> bool
+
+(** The index of a diagram is the index of its top-most variable, or -1 if the
+    diagram is a leaf. *)
+val index : t -> int
+
 
 module Rel : Algebra.KAT with
   type b := Bdd.t and
