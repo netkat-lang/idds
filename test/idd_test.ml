@@ -18,7 +18,7 @@ module Basic = struct
       [Idd.ident; Idd.empty]
     else
       let ts = mk_all_trees (n-1) in
-      let var = if n%2 = 0 then Var.inp (n/2) else Var.out (n/2) in
+      let var = if n%2 = 0 then Var.out (n/2) else Var.inp (n/2) in
       List.cartesian_product ts ts
       |> List.map ~f:(fun (hi, lo) ->
           Idd.branch mgr var hi lo
@@ -72,4 +72,35 @@ module Basic = struct
       let outvartree = Idd.(branch mgr y2 empty ident) in
       eval outvartree (fun x -> not (Var.equal x y2)) 3
     )
+
+  (* Apply tests *)
+  let%test "(x = 1) conj (x <- 0 + x <- 1)" = 
+    Idd.(equal (apply mgr (&&) (branch mgr (Var.inp 0) ident empty) 
+                  (branch mgr (Var.out 0) ident ident))
+           (branch mgr (Var.inp 0) ident empty))
+
+  let%test "(x = 1) disj (x <- 0 + x <- 1)" = 
+    Idd.(equal (apply mgr (||) (branch mgr (Var.inp 0) ident empty) 
+                  (branch mgr (Var.out 0) ident ident))
+           (branch mgr (Var.out 0) ident ident))
+
+  (* Helper function to create a random environment where variable indices
+    range from 0 to [n-1] *)
+  let random_env n : Var.t -> bool =
+    List.range 0 n |> List.concat_map ~f:(fun i -> [Var.inp i; Var.out i]) |>
+    List.fold ~init:(fun _ -> failwith "unbound in environment")
+      ~f:(fun acc var -> let value = Random.bool () in 
+           fun v -> if Var.equal v var then value else acc v)
+    
+  let%test "apply-eval compatibility" = 
+    List.cartesian_product small_trees small_trees |>
+    List.cartesian_product [(||); (&&)] |>
+    List.for_all ~f:Idd.(fun (op, (u,v)) -> 
+        let maxu = (index u) + 1 in
+        let maxv = (index v) + 1 in
+        let env = random_env (max maxu maxv) in
+        let ur = (op (eval u env (max maxu maxv)) (eval v env (max maxu maxv))) in
+        let app = apply mgr op u v in
+        let vr = (eval app env (max maxu maxv)) in
+        Bool.equal ur vr)
 end

@@ -38,7 +38,20 @@ let rec eval' expl (tree:t) (env:Var.t -> bool) (n:int) =
 
 let eval = eval' (Set.empty (module Int))
 
+(** Enforce ordering *)
+let rep_ok (t0 : t) : t =
+  let rec help (t0 : t) (v : Var.t) =
+    match t0 with
+    | True | False -> true
+    | Branch { var; hi; lo } ->
+      Var.closer_to_root v var && help hi var && help lo var in
+  match t0 with
+  | True | False -> t0
+  | Branch { var; hi; lo } -> if help hi var && help lo var then t0
+    else failwith "unordered"
+
 let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
+  rep_ok (
   if Var.is_out var then
     begin match hi, lo with
     | False, False -> hi
@@ -67,7 +80,50 @@ let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
       lo
     | _ -> if equal hi lo then hi else Dd.branch mgr.dd var hi lo
     end
+  )
 
+let index (d:t) : int =
+  match d with
+  | True | False -> Var.leaf_idx
+  | Branch { var } -> Var.index var
+
+let extract (d:t) (side:bool) : t =
+  match d with
+  | False | True -> d
+  | Branch { hi; lo } -> if side then hi else lo
+
+(** [split d root] are the four subtrees of [d] corresponding to the four 
+    possible values of the variable pair [(inp root, out root)], 
+    i.e. [(1, 1), (1, 0), (0, 1), (0, 0)].
+      - requires: [Var.idx_closer_to_root root (index d)] or [root = index d] *)
+let split (d:t) (root:int) = 
+  if Var.idx_closer_to_root root (index d) then (d, empty, empty, d) else
+    match d with
+    | Branch { var; hi; lo } when Var.is_out var -> (hi, lo, hi, lo)
+    | Branch { var; hi; lo } -> (* var is input variable *)
+      let d11, d10 = if index hi = root then extract hi true, extract hi false 
+        else hi, empty in
+      let d01, d00 = if index lo = root then extract lo true, extract lo false
+        else empty, lo in
+      d11, d10, d01, d00
+    | _ -> failwith "Impossible" (* by precondition + if guard *)
+
+let rec apply mgr (op : bool -> bool -> bool) (d0 : t) (d1 : t) =
+  match d0, d1 with
+  | False, False | False, True | True, False | True, True ->
+    let val0 = equal d0 ident in
+    let val1 = equal d1 ident in
+    if op val0 val1 then ident else empty
+  | Branch _, _ | _, Branch _ -> 
+    let root_index = if Var.idx_closer_to_root (index d0) (index d1) 
+      then index d0 else index d1 in
+    let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
+    let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
+    Var.(branch mgr (inp root_index)
+           (branch mgr (out root_index) (apply mgr op d0_11 d1_11) 
+              (apply mgr op d0_10 d1_10))
+           (branch mgr (out root_index) (apply mgr op d0_01 d1_01) 
+              (apply mgr op d0_00 d1_00)))
 
 (* relational operations *)
 module Rel = struct
