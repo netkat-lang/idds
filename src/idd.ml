@@ -125,6 +125,25 @@ let rec apply mgr (op : bool -> bool -> bool) (d0 : t) (d1 : t) =
            (branch mgr (out root_index) (apply mgr op d0_01 d1_01) 
               (apply mgr op d0_00 d1_00)))
 
+let rec seq mgr (d0:t) (d1:t) = 
+    match d0, d1 with
+    | False, False | False, True | True, False -> empty
+    | True, True -> ident
+    | Branch _, _ | _, Branch _ -> 
+      let root_index = if Var.idx_closer_to_root (index d0) (index d1) 
+        then index d0 else index d1 in
+      let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
+      let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
+      Var.(
+        branch mgr (inp root_index)
+          (branch mgr (out root_index)
+             (apply mgr (||) (seq mgr d0_11 d1_11) (seq mgr d0_10 d1_01)) 
+             (apply mgr (||) (seq mgr d0_11 d1_10) (seq mgr d0_10 d1_00)))
+          (branch mgr (out root_index)
+             (apply mgr (||) (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01)) 
+             (apply mgr (||) (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
+      )
+      
 (* relational operations *)
 module Rel = struct
 

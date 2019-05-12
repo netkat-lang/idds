@@ -6,7 +6,6 @@
     canonicity: two IDDs encode the same function iff they are the same IDD. *)
 type t = private Dd.t
 
-
 type manager
 
 val manager : unit -> manager
@@ -27,6 +26,9 @@ val branch : manager -> Var.t -> t -> t -> t
     [Bool.equal (op (eval t0 env n) (eval t1 env n)) (eval t env n)] *)
 val apply : manager -> (bool -> bool -> bool) -> t -> t -> t
 
+(** Sequential composition *)
+val seq : manager -> t -> t -> t
+
 (** {2 Boolean operations} *)
 
 (** O(1) structural equality.
@@ -44,7 +46,6 @@ val eval : t -> (Var.t -> bool) -> int -> bool
 (** The index of a diagram is the index of its top-most variable, or -1 if the
     diagram is a leaf. *)
 val index : t -> int
-
 
 module Rel : Algebra.KAT with
   type b := Bdd.t and
