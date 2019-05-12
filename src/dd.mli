@@ -90,4 +90,8 @@ val to_string : t -> string
     for memoizing functions on DDs. *)
 val id : t -> int
 
+(** The index of a diagram is the index of its top-most variable, or -1 if the
+    diagram is a leaf. *)
+val index : t -> int
+
 

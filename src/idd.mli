@@ -43,10 +43,6 @@ val equal : t -> t -> bool
     variable indices are 0,...,[n-1] *)
 val eval : t -> (Var.t -> bool) -> int -> bool
 
-(** The index of a diagram is the index of its top-most variable, or -1 if the
-    diagram is a leaf. *)
-val index : t -> int
-
 module Rel : Algebra.KAT with
   type b := Bdd.t and
   type t := t
