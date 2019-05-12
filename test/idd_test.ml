@@ -1,6 +1,8 @@
 open Idd_
 open Base
 
+let index (idd : Idd.t) = Dd.index (idd :> Dd.t)
+
 module Basic = struct
   let mgr = Idd.manager ()
   let vars = 2

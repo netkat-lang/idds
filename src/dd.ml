@@ -11,6 +11,12 @@ let id (t : t) : int =
   | True -> -1
   | Branch { id; _ } -> id
 
+let index (d:t) : int =
+  match d with
+  | True | False -> Var.leaf_idx
+  | Branch { var } -> Var.index var
+
+
 module Triple = struct
   type t = Var.t * int * int
     [@@deriving hash, compare, sexp]

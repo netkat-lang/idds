@@ -58,42 +58,39 @@ let enforce_ordered (t0 : t) : t =
     if ordered var hi && ordered var lo then t0 else
     failwith ("unordered: " ^ Dd.to_string t0)
 
-let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
+let branch (mgr : manager) (x : Var.t) (hi : t) (lo : t) : t =
   (* enforce_ordered ( *)
-  if Var.is_out var then
+  if Var.is_out x then
     begin match hi, lo with
     | False, False -> hi
-    | _ -> Dd.branch mgr.dd var hi lo
+    | _ -> Dd.branch mgr.dd x hi lo
     end
-  else
+  else (* Var.is_inp var *)
     if equal hi lo then hi else
+    let x' = Var.to_out x in
+    (* make identity x=x' implicit *)
     let hi = match hi with
-      | Branch { hi; lo=False; var=var'; _ }
-        when Var.(equal (to_out var) var') ->
-        hi
+      | Branch { hi; lo=False; var; } when Var.(equal var x') -> hi
       | _ -> hi
     in
     let lo = match lo with
-      | Branch { hi=False; lo; var=var'; _ }
-        when Var.(equal (to_out var) var') ->
-        lo
+      | Branch { hi=False; lo; var; } when Var.(equal var x') -> lo
       | _ -> lo
     in
+    (* is testing x redundant? *)
+    if equal hi lo then hi else
     begin match hi, lo with
-    | Branch { hi=False; lo=l; var=var'; _ }, _
-      when Var.(equal (to_out var) var') && equal lo l ->
+    | Branch { hi=False; lo=lo'; var; }, _
+      when Var.(equal var x') && equal lo lo' ->
       hi
-    | _, Branch { hi=h; lo=False; var=var'; _ }
-      when Var.(equal (to_out var) var') && equal hi h ->
+    | _, Branch { hi=hi'; lo=False; var; }
+      when Var.(equal var x') && equal hi hi' ->
       lo
-    | _ -> if equal hi lo then hi else Dd.branch mgr.dd var hi lo
+    | _ ->
+      Dd.branch mgr.dd x hi lo
     end
   (* ) *)
 
-let index (d:t) : int =
-  match d with
-  | True | False -> Var.leaf_idx
-  | Branch { var } -> Var.index var
 
 let extract (d:t) (side:bool) : t =
   match d with
@@ -103,17 +100,17 @@ let extract (d:t) (side:bool) : t =
 (** [split d root] are the four subtrees of [d] corresponding to the four 
     possible values of the variable pair [(inp root, out root)], 
     i.e. [(1, 1), (1, 0), (0, 1), (0, 0)].
-      - requires: [Var.idx_closer_to_root root (index d)] or [root = index d] *)
+      - requires: [Var.idx_closer_to_root root (Dd.index d)] or [root = Dd.index d] *)
 let split (d:t) (root:int) = 
-  if Var.idx_strictly_closer_to_root root (index d) then
+  if Var.idx_strictly_closer_to_root root (Dd.index d) then
     (d, empty, empty, d)
   else
     match d with
     | Branch { var; hi; lo } when Var.is_out var -> (hi, lo, hi, lo)
     | Branch { var; hi; lo } -> (* var is input variable *)
-      let d11, d10 = if index hi = root then extract hi true, extract hi false 
+      let d11, d10 = if Dd.index hi = root then extract hi true, extract hi false 
         else hi, empty in
-      let d01, d00 = if index lo = root then extract lo true, extract lo false
+      let d01, d00 = if Dd.index lo = root then extract lo true, extract lo false
         else empty, lo in
       d11, d10, d01, d00
     | _ -> failwith "Impossible" (* by precondition + if guard *)
@@ -125,8 +122,8 @@ let rec apply mgr (op : bool -> bool -> bool) (d0 : t) (d1 : t) =
     let val1 = equal d1 ident in
     if op val0 val1 then ident else empty
   | Branch _, _ | _, Branch _ -> 
-    let root_index = if Var.idx_strictly_closer_to_root (index d0) (index d1)
-      then index d0 else index d1 in
+    let root_index = if Var.idx_strictly_closer_to_root (Dd.index d0) (Dd.index d1)
+      then Dd.index d0 else Dd.index d1 in
     let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
     let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
     Var.(branch mgr (inp root_index)
@@ -140,8 +137,8 @@ let rec seq mgr (d0:t) (d1:t) =
     | False, False | False, True | True, False -> empty
     | True, True -> ident
     | Branch _, _ | _, Branch _ -> 
-      let root_index = if Var.idx_strictly_closer_to_root (index d0) (index d1)
-        then index d0 else index d1 in
+      let root_index = if Var.idx_strictly_closer_to_root (Dd.index d0) (Dd.index d1)
+        then Dd.index d0 else Dd.index d1 in
       let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
       let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
       Var.(
