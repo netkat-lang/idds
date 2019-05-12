@@ -77,6 +77,8 @@ val branch : manager -> Var.t -> t -> t -> t
     were built using the same manager. Otherwise, the result is arbitrary. *)
 val equal : t -> t -> bool
 
+val to_string : t -> string
+
 
 (** {2 Low-level API} *)
 

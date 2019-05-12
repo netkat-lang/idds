@@ -12,20 +12,20 @@ include T
 
 let leaf_idx = -1
 
-let[@inline] inp (id : int) : t = { id = id*2 }
-let[@inline] out (id : int) : t = { id = id*2 + 1 }
+let[@inline] inp (id : int) : t = { id = id*2 + 1 }
+let[@inline] out (id : int) : t = { id = id*2 }
 
 let[@inline] is_inp (var : t) : bool =
-  var.id % 2 = 0
-
-let[@inline] is_out (var : t) : bool =
   var.id % 2 = 1
 
+let[@inline] is_out (var : t) : bool =
+  var.id % 2 = 0
+
 let[@inline] to_out (var : t) : t =
-  if var.id % 2 = 1 then var else { id = var.id + 1 }
+  if is_out var then var else { id = var.id - 1 }
 
 let[@inline] is_in_out_pair inp out : bool =
-  is_inp inp && is_out out && (inp.id + 1 = out.id)
+  is_inp inp && is_out out && (inp.id - 1 = out.id)
 
 let[@inline] index (t : t) : int =
   t.id / 2
@@ -38,3 +38,8 @@ let[@inline] closer_to_root (v0 : t) (v1 : t) : [`Left | `Right | `Equal ] =
 
 let[@inline] idx_strictly_closer_to_root (idx0 : int) (idx1 : int) : bool =
   idx0 > idx1
+
+let to_string (t : t) : string =
+  Caml.Format.sprintf "%s%d"
+    (if is_inp t then "I" else "O")
+    (index t)
