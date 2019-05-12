@@ -103,4 +103,44 @@ module Basic = struct
         let app = apply mgr op u v in
         let vr = (eval app env (max maxu maxv)) in
         Bool.equal ur vr)
+
+  (* Seq tests *)
+
+  (** returns list of all 2^n possible boolean lists *)
+  let all_lsts n =
+    let rec help n lsts =
+      if n = 0 then lsts
+      else 
+        let f = List.map ~f:(fun lst -> false::lst) lsts in
+        let t = List.map ~f:(fun lst -> true::lst) lsts in
+        help (n-1) (List.append f t)
+    in  
+    help n [[]]
+
+  (** requires: argument lists have same length *)
+  let env_from_lsts in_f_lst out_f_lst =
+    let pairs = List.zip_exn in_f_lst out_f_lst in
+    List.foldi pairs ~init:(fun _ -> failwith "Unbound in environment")
+    ~f:(fun i acc (b1, b2) -> let inp, out = Var.inp i, Var.out i in
+       fun v -> if Var.equal v inp then b1 else if Var.equal v out then b2 
+         else acc v)
+
+  let%test "seq-eval compatibility" = 
+   List.cartesian_product small_trees small_trees |>
+   List.for_all ~f:(fun (t1, t2) -> 
+       Idd.(
+         let max1, max2 = index t1 + 1, index t2 + 1 in
+         let max_idx = max max1 max2 in
+         let alllsts = all_lsts max_idx in
+         List.cartesian_product alllsts alllsts |>
+         List.for_all ~f:(fun (lst1, lst3) ->
+             let expected = List.exists alllsts ~f:(fun lst2 -> 
+                 eval t1 (env_from_lsts lst1 lst2) max_idx &&
+                 eval t2 (env_from_lsts lst2 lst3) max_idx) in
+             Bool.equal expected 
+               (eval (seq mgr t1 t2) (env_from_lsts lst1 lst3) max_idx)
+          )
+       )
+     )
+
 end
