@@ -39,87 +39,70 @@ let branch mgr var hi lo =
     Dd.branch mgr var hi lo
 
 let conj mgr =
-  let rec conj (u : t) (v : t) : t =
-    match u, v with
+  let rec conj (d1 : t) (d2 : t) : t =
+    match d1, d2 with
     | False, _ | _, False ->
       Dd.cfalse
     | True, w | w, True ->
       w
-    | Branch { var=var_u; hi=hi_u; lo=lo_u; id=id_u },
-      Branch { var=var_v; hi=hi_v; lo=lo_v; id=id_v } ->
-      if id_u = id_v then u else
-        let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
-        Hashtbl.find_or_add mgr.conj_cache key ~default:(fun () ->
-          match Var.compare var_u var_v with
-          | -1 ->
-            let var = var_u in
-            let hi = conj hi_u v in
-            let lo = conj lo_u v in
-            branch mgr.dd var hi lo
-          | 1 ->
-            let var = var_v in
-            let hi = conj u hi_v in
-            let lo = conj u lo_v in
-            branch mgr.dd var hi lo
-          | 0 ->
-            let var = var_u in
-            let hi = conj hi_u hi_v in
-            let lo = conj lo_v lo_u in
-            branch mgr.dd var hi lo
-          | _ ->
-            assert false
-        )
+    | Branch { var=x1; hi=hi1; lo=lo1; id=id1 },
+      Branch { var=x2; hi=hi2; lo=lo2; id=id2 } ->
+      (* conjunction is idempotent... *)
+      if id1 = id2 then d1 else
+      (* ...and commutative *)
+      let key = if id1 <= id2 then (id1, id2) else (id2, id1) in
+      Hashtbl.find_or_add mgr.conj_cache key ~default:(fun () ->
+        match Var.closer_to_root x1 x2 with
+        | `Equal ->
+          branch mgr.dd x1 (conj hi1 hi2) (conj lo1 lo2)
+        | `Left ->
+          branch mgr.dd x1 (conj hi1 d2) (conj lo1 d2)
+        | `Right ->
+          branch mgr.dd x2 (conj d1 hi2) (conj d1 lo2)
+      )
   in
   conj
 
 let disj mgr =
-  let rec disj (u : t) (v : t) : t =
-    match u, v with
+  let rec disj (d1 : t) (d2 : t) : t =
+    match d1, d2 with
     | False, w | w, False ->
       w
     | True, _ | _, True ->
       Dd.ctrue
-    | Branch { var=var_u; hi=hi_u; lo=lo_u; id=id_u },
-      Branch { var=var_v; hi=hi_v; lo=lo_v; id=id_v } ->
-      if id_u = id_v then u else
-        let key = if id_u <= id_v then (id_u, id_v) else (id_v, id_u) in
-        Hashtbl.find_or_add mgr.disj_cache key ~default:(fun () ->
-          match Var.compare var_u var_v with
-          | -1 ->
-            let var = var_u in
-            let hi = disj hi_u v in
-            let lo = disj lo_u v in
-            branch mgr.dd var hi lo
-          | 1 ->
-            let var = var_v in
-            let hi = disj u hi_v in
-            let lo = disj u lo_v in
-            branch mgr.dd var hi lo
-          | 0 ->
-            let var = var_u in
-            let hi = disj hi_u hi_v in
-            let lo = disj lo_v lo_u in
-            branch mgr.dd var hi lo
-          | _ ->
-            assert false
-        )
+    | Branch { var=x1; hi=hi1; lo=lo1; id=id1 },
+      Branch { var=x2; hi=hi2; lo=lo2; id=id2 } ->
+      (* disjunction is idempotent... *)
+      if id1 = id2 then d1 else
+      (* ...and commutative *)
+      let key = if id1 <= id2 then (id1, id2) else (id2, id1) in
+      Hashtbl.find_or_add mgr.disj_cache key ~default:(fun () ->
+        match Var.closer_to_root x1 x2 with
+        | `Equal ->
+          branch mgr.dd x1 (disj hi1 hi2) (disj lo1 lo2)
+        | `Left ->
+          branch mgr.dd x1 (disj hi1 d2) (disj lo1 d2)
+        | `Right ->
+          branch mgr.dd x2 (disj d1 hi2) (disj d1 lo2)
+      )
   in
   disj
 
 let neg mgr =
-  let rec neg (u : t) =
-    match u with
+  let rec neg (d : t) =
+    match d with
     | True -> Dd.cfalse
     | False -> Dd.ctrue
     | Branch { var; hi; lo; id } ->
       begin match Hashtbl.find mgr.neg_cache id with
-      | Some v ->
-        v
+      | Some d ->
+        d
       | None ->
-        let v = Dd.branch mgr.dd var (neg hi) (neg lo) in
-        Hashtbl.add_exn mgr.neg_cache ~key:id ~data:v;
-        Hashtbl.add_exn mgr.neg_cache ~key:Dd.(id v) ~data:u;
-        v
+        let neg_d = Dd.branch mgr.dd var (neg hi) (neg lo) in
+        Hashtbl.add_exn mgr.neg_cache ~key:id ~data:neg_d;
+        (* neg (neg d) = d *)
+        Hashtbl.add_exn mgr.neg_cache ~key:Dd.(id neg_d) ~data:d;
+        neg_d
       end
   in
   neg
