@@ -43,19 +43,20 @@ let eval = eval' (Set.empty (module Int))
 
 
 let enforce_ordered (t0 : t) : t =
-  let rec ordered (v : Var.t) (t0 : t) =
+  let rec ordered (x : Var.t) (t0 : t) =
     match t0 with
     | True | False -> true
-    | Branch { var; hi; lo } ->
-      begin match Var.closer_to_root v var with
-      | `Left -> ordered var hi && ordered var lo
+    | Branch { var=y; hi; lo } ->
+      begin match Var.closer_to_root x y with
+      | `Left -> ordered y hi && ordered y lo
       | _ -> false
       end
   in
   match t0 with
   | True | False -> t0
-  | Branch { var; hi; lo } -> if ordered var hi && ordered var lo then t0
-    else failwith "unordered"
+  | Branch { var; hi; lo } ->
+    if ordered var hi && ordered var lo then t0 else
+    failwith ("unordered: " ^ Dd.to_string t0)
 
 let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
   (* enforce_ordered ( *)

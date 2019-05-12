@@ -45,3 +45,13 @@ let equal (t1 : t) (t2 : t) : bool =
     id1 = id2
   | _ ->
     false
+
+let rec to_string (t : t) : string =
+  match t with
+  | True -> "1"
+  | False -> "0"
+  | Branch { var; hi; lo } ->
+    Caml.Format.sprintf "(%s ? %s : %s)"
+      (Var.to_string var)
+      (to_string hi)
+      (to_string lo)
