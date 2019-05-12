@@ -28,30 +28,37 @@ let empty = Dd.cfalse
 
 let rec eval' expl (tree:t) (env:Var.t -> bool) (n:int) =
   match tree with
-  | False -> false
-  | True -> List.range 0 n |> List.for_all ~f:(fun i ->
-      Set.mem expl i || Bool.equal (env (Var.inp i)) (env (Var.out i)))
-  | Branch { var; hi; lo } when Var.is_inp var ->
-    eval' expl (if (env var) then hi else lo) env n
+  | False ->
+    false
+  | True ->
+    Sequence.range 0 n
+    |> Sequence.for_all ~f:(fun i ->
+      Set.mem expl i || Bool.equal (env (Var.inp i)) (env (Var.out i))
+    )
   | Branch { var; hi; lo } ->
-    eval' (Set.add expl (Var.index var)) (if (env var) then hi else lo) env n
+    let expl = if Var.is_inp var then expl else Set.add expl (Var.index var) in
+    eval' expl (if (env var) then hi else lo) env n
 
 let eval = eval' (Set.empty (module Int))
 
-(** Enforce ordering *)
-let rep_ok (t0 : t) : t =
-  let rec help (t0 : t) (v : Var.t) =
+
+let enforce_ordered (t0 : t) : t =
+  let rec ordered (v : Var.t) (t0 : t) =
     match t0 with
     | True | False -> true
     | Branch { var; hi; lo } ->
-      Var.closer_to_root v var && help hi var && help lo var in
+      begin match Var.closer_to_root v var with
+      | `Left -> ordered var hi && ordered var lo
+      | _ -> false
+      end
+  in
   match t0 with
   | True | False -> t0
-  | Branch { var; hi; lo } -> if help hi var && help lo var then t0
+  | Branch { var; hi; lo } -> if ordered var hi && ordered var lo then t0
     else failwith "unordered"
 
 let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
-  rep_ok (
+  (* enforce_ordered ( *)
   if Var.is_out var then
     begin match hi, lo with
     | False, False -> hi
@@ -80,7 +87,7 @@ let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
       lo
     | _ -> if equal hi lo then hi else Dd.branch mgr.dd var hi lo
     end
-  )
+  (* ) *)
 
 let index (d:t) : int =
   match d with
@@ -97,7 +104,9 @@ let extract (d:t) (side:bool) : t =
     i.e. [(1, 1), (1, 0), (0, 1), (0, 0)].
       - requires: [Var.idx_closer_to_root root (index d)] or [root = index d] *)
 let split (d:t) (root:int) = 
-  if Var.idx_closer_to_root root (index d) then (d, empty, empty, d) else
+  if Var.idx_strictly_closer_to_root root (index d) then
+    (d, empty, empty, d)
+  else
     match d with
     | Branch { var; hi; lo } when Var.is_out var -> (hi, lo, hi, lo)
     | Branch { var; hi; lo } -> (* var is input variable *)
@@ -115,7 +124,7 @@ let rec apply mgr (op : bool -> bool -> bool) (d0 : t) (d1 : t) =
     let val1 = equal d1 ident in
     if op val0 val1 then ident else empty
   | Branch _, _ | _, Branch _ -> 
-    let root_index = if Var.idx_closer_to_root (index d0) (index d1) 
+    let root_index = if Var.idx_strictly_closer_to_root (index d0) (index d1)
       then index d0 else index d1 in
     let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
     let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
@@ -130,7 +139,7 @@ let rec seq mgr (d0:t) (d1:t) =
     | False, False | False, True | True, False -> empty
     | True, True -> ident
     | Branch _, _ | _, Branch _ -> 
-      let root_index = if Var.idx_closer_to_root (index d0) (index d1) 
+      let root_index = if Var.idx_strictly_closer_to_root (index d0) (index d1)
         then index d0 else index d1 in
       let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
       let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
