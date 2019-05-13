@@ -170,11 +170,11 @@ let rec seq mgr (d0:t) (d1:t) =
       Var.(
         branch mgr (inp root_index)
           (branch mgr (out root_index)
-             (apply mgr (||) (seq mgr d0_11 d1_11) (seq mgr d0_10 d1_01))
-             (apply mgr (||) (seq mgr d0_11 d1_10) (seq mgr d0_10 d1_00)))
+             (union mgr (seq mgr d0_11 d1_11) (seq mgr d0_10 d1_01))
+             (union mgr (seq mgr d0_11 d1_10) (seq mgr d0_10 d1_00)))
           (branch mgr (out root_index)
-             (apply mgr (||) (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01))
-             (apply mgr (||) (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
+             (union mgr (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01))
+             (union mgr (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
       )
     )
 
