@@ -11,16 +11,12 @@ end
 
 type manager = {
   dd : Dd.manager;
-  conj_cache : (Pair.t, t) Hashtbl.t;
-  disj_cache : (Pair.t, t) Hashtbl.t;
-  neg_cache : (int, t) Hashtbl.t
+  seq_cache : (Pair.t, t) Hashtbl.t;
 }
 
 let manager () : manager = {
   dd = Dd.manager ();
-  conj_cache = Hashtbl.create (module Pair);
-  disj_cache = Hashtbl.create (module Pair);
-  neg_cache = Hashtbl.create (module Int);
+  seq_cache = Hashtbl.create (module Pair);
 }
 
 let ident = Dd.ctrue
@@ -97,18 +93,18 @@ let extract (d:t) (side:bool) : t =
   | False | True -> d
   | Branch { hi; lo } -> if side then hi else lo
 
-(** [split d root] are the four subtrees of [d] corresponding to the four 
-    possible values of the variable pair [(inp root, out root)], 
+(** [split d root] are the four subtrees of [d] corresponding to the four
+    possible values of the variable pair [(inp root, out root)],
     i.e. [(1, 1), (1, 0), (0, 1), (0, 0)].
       - requires: [Var.idx_closer_to_root root (Dd.index d)] or [root = Dd.index d] *)
-let split (d:t) (root:int) = 
+let split (d:t) (root:int) =
   if Var.idx_strictly_closer_to_root root (Dd.index d) then
     (d, empty, empty, d)
   else
     match d with
     | Branch { var; hi; lo } when Var.is_out var -> (hi, lo, hi, lo)
     | Branch { var; hi; lo } -> (* var is input variable *)
-      let d11, d10 = if Dd.index hi = root then extract hi true, extract hi false 
+      let d11, d10 = if Dd.index hi = root then extract hi true, extract hi false
         else hi, empty in
       let d01, d00 = if Dd.index lo = root then extract lo true, extract lo false
         else empty, lo in
@@ -121,22 +117,26 @@ let rec apply mgr (op : bool -> bool -> bool) (d0 : t) (d1 : t) =
     let val0 = equal d0 ident in
     let val1 = equal d1 ident in
     if op val0 val1 then ident else empty
-  | Branch _, _ | _, Branch _ -> 
+  | Branch _, _ | _, Branch _ ->
     let root_index = if Var.idx_strictly_closer_to_root (Dd.index d0) (Dd.index d1)
       then Dd.index d0 else Dd.index d1 in
     let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
     let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
     Var.(branch mgr (inp root_index)
-           (branch mgr (out root_index) (apply mgr op d0_11 d1_11) 
+           (branch mgr (out root_index) (apply mgr op d0_11 d1_11)
               (apply mgr op d0_10 d1_10))
-           (branch mgr (out root_index) (apply mgr op d0_01 d1_01) 
+           (branch mgr (out root_index) (apply mgr op d0_01 d1_01)
               (apply mgr op d0_00 d1_00)))
 
-let rec seq mgr (d0:t) (d1:t) = 
-    match d0, d1 with
-    | False, False | False, True | True, False -> empty
-    | True, True -> ident
-    | Branch _, _ | _, Branch _ -> 
+let rec seq mgr (d0:t) (d1:t) =
+  match d0, d1 with
+  | (False as d), _
+  | _, (False as d)
+  | True, d
+  | d, True ->
+    d
+  | Branch { id=id1 }, Branch { id=id2 } ->
+    Hashtbl.find_or_add mgr.seq_cache (id1, id2) ~default:(fun () ->
       let root_index = if Var.idx_strictly_closer_to_root (Dd.index d0) (Dd.index d1)
         then Dd.index d0 else Dd.index d1 in
       let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
@@ -144,13 +144,14 @@ let rec seq mgr (d0:t) (d1:t) =
       Var.(
         branch mgr (inp root_index)
           (branch mgr (out root_index)
-             (apply mgr (||) (seq mgr d0_11 d1_11) (seq mgr d0_10 d1_01)) 
+             (apply mgr (||) (seq mgr d0_11 d1_11) (seq mgr d0_10 d1_01))
              (apply mgr (||) (seq mgr d0_11 d1_10) (seq mgr d0_10 d1_00)))
           (branch mgr (out root_index)
-             (apply mgr (||) (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01)) 
+             (apply mgr (||) (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01))
              (apply mgr (||) (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
       )
-      
+    )
+
 (* relational operations *)
 module Rel = struct
 
