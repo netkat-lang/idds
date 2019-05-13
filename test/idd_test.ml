@@ -76,13 +76,13 @@ module Basic = struct
     )
 
   (* Apply tests *)
-  let%test "(x = 1) conj (x <- 0 + x <- 1)" = 
-    Idd.(equal (apply mgr (&&) (branch mgr (Var.inp 0) ident empty) 
+  let%test "(x = 1) conj (x <- 0 + x <- 1)" =
+    Idd.(equal (apply mgr (&&) (branch mgr (Var.inp 0) ident empty)
                   (branch mgr (Var.out 0) ident ident))
            (branch mgr (Var.inp 0) ident empty))
 
-  let%test "(x = 1) disj (x <- 0 + x <- 1)" = 
-    Idd.(equal (apply mgr (||) (branch mgr (Var.inp 0) ident empty) 
+  let%test "(x = 1) disj (x <- 0 + x <- 1)" =
+    Idd.(equal (apply mgr (||) (branch mgr (Var.inp 0) ident empty)
                   (branch mgr (Var.out 0) ident ident))
            (branch mgr (Var.out 0) ident ident))
 
@@ -91,13 +91,13 @@ module Basic = struct
   let random_env n : Var.t -> bool =
     List.range 0 n |> List.concat_map ~f:(fun i -> [Var.inp i; Var.out i]) |>
     List.fold ~init:(fun _ -> failwith "unbound in environment")
-      ~f:(fun acc var -> let value = Random.bool () in 
+      ~f:(fun acc var -> let value = Random.bool () in
            fun v -> if Var.equal v var then value else acc v)
-    
-  let%test "apply-eval compatibility" = 
+
+  let%test "apply-eval compatibility" =
     List.cartesian_product small_trees small_trees |>
     List.cartesian_product [(||); (&&)] |>
-    List.for_all ~f:Idd.(fun (op, (u,v)) -> 
+    List.for_all ~f:Idd.(fun (op, (u,v)) ->
         let maxu = (index u) + 1 in
         let maxv = (index v) + 1 in
         let env = random_env (max maxu maxv) in
@@ -106,17 +106,23 @@ module Basic = struct
         let vr = (eval app env (max maxu maxv)) in
         Bool.equal ur vr)
 
+    let%test "apply and union agree" =
+    List.cartesian_product small_trees small_trees
+    |> List.for_all ~f:(fun (u,v) ->
+      Idd.(equal (apply mgr (||) u v) (union mgr u v))
+    )
+
   (* Seq tests *)
 
   (** returns list of all 2^n possible boolean lists *)
   let all_lsts n =
     let rec help n lsts =
       if n = 0 then lsts
-      else 
+      else
         let f = List.map ~f:(fun lst -> false::lst) lsts in
         let t = List.map ~f:(fun lst -> true::lst) lsts in
         help (n-1) (List.append f t)
-    in  
+    in
     help n [[]]
 
   (** requires: argument lists have same length *)
@@ -124,22 +130,22 @@ module Basic = struct
     let pairs = List.zip_exn in_f_lst out_f_lst in
     List.foldi pairs ~init:(fun _ -> failwith "Unbound in environment")
     ~f:(fun i acc (b1, b2) -> let inp, out = Var.inp i, Var.out i in
-       fun v -> if Var.equal v inp then b1 else if Var.equal v out then b2 
+       fun v -> if Var.equal v inp then b1 else if Var.equal v out then b2
          else acc v)
 
-  let%test "seq-eval compatibility" = 
+  let%test "seq-eval compatibility" =
    List.cartesian_product small_trees small_trees |>
-   List.for_all ~f:(fun (t1, t2) -> 
+   List.for_all ~f:(fun (t1, t2) ->
        Idd.(
          let max1, max2 = index t1 + 1, index t2 + 1 in
          let max_idx = max max1 max2 in
          let alllsts = all_lsts max_idx in
          List.cartesian_product alllsts alllsts |>
          List.for_all ~f:(fun (lst1, lst3) ->
-             let expected = List.exists alllsts ~f:(fun lst2 -> 
+             let expected = List.exists alllsts ~f:(fun lst2 ->
                  eval t1 (env_from_lsts lst1 lst2) max_idx &&
                  eval t2 (env_from_lsts lst2 lst3) max_idx) in
-             Bool.equal expected 
+             Bool.equal expected
                (eval (seq mgr t1 t2) (env_from_lsts lst1 lst3) max_idx)
           )
        )

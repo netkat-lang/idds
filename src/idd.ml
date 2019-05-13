@@ -11,11 +11,13 @@ end
 
 type manager = {
   dd : Dd.manager;
+  union_cache : (Pair.t, t) Hashtbl.t;
   seq_cache : (Pair.t, t) Hashtbl.t;
 }
 
 let manager () : manager = {
   dd = Dd.manager ();
+  union_cache = Hashtbl.create (module Pair);
   seq_cache = Hashtbl.create (module Pair);
 }
 
@@ -127,6 +129,30 @@ let rec apply mgr (op : bool -> bool -> bool) (d0 : t) (d1 : t) =
               (apply mgr op d0_10 d1_10))
            (branch mgr (out root_index) (apply mgr op d0_01 d1_01)
               (apply mgr op d0_00 d1_00)))
+
+let rec union mgr (d0 : t) (d1 : t) =
+  match d0, d1 with
+  | False, d | d, False ->
+    d
+  | True, True ->
+    d0
+  | _ ->
+    let id0, id1 = Dd.id d0, Dd.id d1 in
+    (* union is idempotent... *)
+    if id0 = id1 then d0 else
+    (* ... and commutative *)
+    let key = if id0 <= id1 then (id0, id1) else (id1, id0) in
+    Hashtbl.find_or_add mgr.union_cache key ~default:(fun () ->
+      let root_index = if Var.idx_strictly_closer_to_root (Dd.index d0) (Dd.index d1)
+        then Dd.index d0 else Dd.index d1 in
+      let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
+      let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
+      Var.(branch mgr (inp root_index)
+             (branch mgr (out root_index) (union mgr d0_11 d1_11)
+                (union mgr d0_10 d1_10))
+             (branch mgr (out root_index) (union mgr d0_01 d1_01)
+                (union mgr d0_00 d1_00)))
+    )
 
 let rec seq mgr (d0:t) (d1:t) =
   match d0, d1 with

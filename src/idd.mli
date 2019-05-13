@@ -22,12 +22,15 @@ val empty : t
     [var = true], and like [lo] when [var = false]. *)
 val branch : manager -> Var.t -> t -> t -> t
 
-(** [apply mgr op t0 t1] is [t] such that 
+(** [apply mgr op t0 t1] is [t] such that
     [Bool.equal (op (eval t0 env n) (eval t1 env n)) (eval t env n)] *)
 val apply : manager -> (bool -> bool -> bool) -> t -> t -> t
 
 (** Sequential composition *)
 val seq : manager -> t -> t -> t
+
+(** (Relational) union *)
+val union : manager -> t -> t -> t
 
 (** {2 Boolean operations} *)
 
