@@ -53,11 +53,11 @@ let conj mgr =
       let key = if id1 <= id2 then (id1, id2) else (id2, id1) in
       Hashtbl.find_or_add mgr.conj_cache key ~default:(fun () ->
         match Var.closer_to_root x1 x2 with
-        | `Equal ->
+        | Equal ->
           branch mgr.dd x1 (conj hi1 hi2) (conj lo1 lo2)
-        | `Left ->
+        | Left ->
           branch mgr.dd x1 (conj hi1 d2) (conj lo1 d2)
-        | `Right ->
+        | Right ->
           branch mgr.dd x2 (conj d1 hi2) (conj d1 lo2)
       )
   in
@@ -78,11 +78,11 @@ let disj mgr =
       let key = if id1 <= id2 then (id1, id2) else (id2, id1) in
       Hashtbl.find_or_add mgr.disj_cache key ~default:(fun () ->
         match Var.closer_to_root x1 x2 with
-        | `Equal ->
+        | Equal ->
           branch mgr.dd x1 (disj hi1 hi2) (disj lo1 lo2)
-        | `Left ->
+        | Left ->
           branch mgr.dd x1 (disj hi1 d2) (disj lo1 d2)
-        | `Right ->
+        | Right ->
           branch mgr.dd x2 (disj d1 hi2) (disj d1 lo2)
       )
   in

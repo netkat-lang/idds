@@ -1,7 +1,8 @@
 open Base
 
 type t = Dd.t
-
+let ident = Dd.ctrue
+let empty = Dd.cfalse
 let equal = Dd.equal
 
 module Pair = struct
@@ -20,9 +21,6 @@ let manager () : manager = {
   union_cache = Hashtbl.create (module Pair);
   seq_cache = Hashtbl.create (module Pair);
 }
-
-let ident = Dd.ctrue
-let empty = Dd.cfalse
 
 let rec eval' expl (tree:t) (env:Var.t -> bool) (n:int) =
   match tree with
@@ -46,7 +44,7 @@ let enforce_ordered (t0 : t) : t =
     | True | False -> true
     | Branch { var=y; hi; lo } ->
       begin match Var.closer_to_root x y with
-      | `Left -> ordered y hi && ordered y lo
+      | Left -> ordered y hi && ordered y lo
       | _ -> false
       end
   in
@@ -104,7 +102,8 @@ let split (d:t) (root:int) =
     (d, empty, empty, d)
   else
     match d with
-    | Branch { var; hi; lo } when Var.is_out var -> (hi, lo, hi, lo)
+    | Branch { var; hi; lo } when Var.is_out var ->
+      (hi, lo, hi, lo)
     | Branch { var; hi; lo } -> (* var is input variable *)
       let d11, d10 = if Dd.index hi = root then extract hi true, extract hi false
         else hi, empty in
@@ -156,10 +155,8 @@ let rec union mgr (d0 : t) (d1 : t) =
 
 let rec seq mgr (d0:t) (d1:t) =
   match d0, d1 with
-  | (False as d), _
-  | _, (False as d)
-  | True, d
-  | d, True ->
+  | (False as d), _ | _, (False as d)
+  | True, d | d, True ->
     d
   | Branch { id=id1 }, Branch { id=id2 } ->
     Hashtbl.find_or_add mgr.seq_cache (id1, id2) ~default:(fun () ->
@@ -167,15 +164,13 @@ let rec seq mgr (d0:t) (d1:t) =
         then Dd.index d0 else Dd.index d1 in
       let (d0_11, d0_10, d0_01, d0_00) = split d0 root_index in
       let (d1_11, d1_10, d1_01, d1_00) = split d1 root_index in
-      Var.(
-        branch mgr (inp root_index)
-          (branch mgr (out root_index)
-             (union mgr (seq mgr d0_11 d1_11) (seq mgr d0_10 d1_01))
-             (union mgr (seq mgr d0_11 d1_10) (seq mgr d0_10 d1_00)))
-          (branch mgr (out root_index)
-             (union mgr (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01))
-             (union mgr (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
-      )
+      branch mgr (Var.inp root_index)
+        (branch mgr (Var.out root_index)
+          (union mgr (seq mgr d0_11 d1_11) (seq mgr d0_10 d1_01))
+          (union mgr (seq mgr d0_11 d1_10) (seq mgr d0_10 d1_00)))
+        (branch mgr (Var.out root_index)
+          (union mgr (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01))
+          (union mgr (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
     )
 
 (* relational operations *)
