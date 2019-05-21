@@ -21,16 +21,16 @@ val empty : t
 (** For i < n,
   eval (test i b) env n =
     env (Var.inp i) = b && eval ident env n
-  rel n (test i b) = { (x,x) | x \in B^n, x_i = b }
+  rel n (test i b) = \{ (x,x) | x \in B^n, x_i = b \}
      *)
-val test : int -> bool -> t
+val test : manager -> int -> bool -> t
 
 (** For i < n,
   eval (set i b) env n = eval ident env' n, where
     env' x = if x = Var.inp i then b else env x
-  rel n (set i b) = { (x,x[i:=b]) | x \in B^n }
+  rel n (set i b) = \{ (x,x[i:=b]) | x \in B^n \}
   *)
-val set : int -> bool -> t
+val set : manager -> int -> bool -> t
 
 (** [branch mgr var hi lo] is the diagram that behaves like [hi] when
     [var = true], and like [lo] when [var = false]. *)
@@ -47,7 +47,7 @@ val seq : manager -> t -> t -> t
 val union : manager -> t -> t -> t
 
 (** (Relational) transitive-reflexive closure  *)
-val star : t -> t
+val star : manager -> t -> t
 
 (** {2 Boolean operations} *)
 
@@ -58,7 +58,7 @@ val star : t -> t
 val equal : t -> t -> bool
 
 (** relational containment *)
-val subseteq : t -> t -> bool
+val subseteq : manager -> t -> t -> bool
 
 (** {2 Semantics} *)
 

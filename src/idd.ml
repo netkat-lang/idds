@@ -87,6 +87,13 @@ let branch (mgr : manager) (x : Var.t) (hi : t) (lo : t) : t =
     end
   (* ) *)
 
+let test mgr i b =
+    branch mgr (Var.inp i) (if b then ident else empty)
+          (if b then empty else ident)
+
+let set mgr i b =
+    branch mgr (Var.out i) (if b then ident else empty)
+          (if b then empty else ident)
 
 let extract (d:t) (side:bool) : t =
   match d with
@@ -172,6 +179,16 @@ let rec seq mgr (d0:t) (d1:t) =
           (union mgr (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01))
           (union mgr (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
     )
+
+let star mgr (d0:t) =
+  let rec loop curr prev =
+    if equal curr prev then prev else
+      loop (seq mgr curr curr) curr
+  in
+  loop (union mgr ident d0) ident
+
+let subseteq mgr (d0:t) (d1:t) =
+    equal (union mgr d0 d1) d1
 
 (* relational operations *)
 module Rel = struct

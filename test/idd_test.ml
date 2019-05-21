@@ -151,4 +151,49 @@ module Basic = struct
        )
      )
 
+  (* Star tests *)
+
+  let is_transitive d0 max_idx =
+    Idd.(
+      let alllsts = all_lsts max_idx in
+      List.cartesian_product alllsts alllsts |>
+      List.cartesian_product alllsts |>
+      List.for_all ~f:(fun (lst1, (lst2, lst3)) ->
+          if eval d0 (env_from_lsts lst1 lst2) max_idx &&
+             eval d0 (env_from_lsts lst2 lst3) max_idx then
+            eval d0 (env_from_lsts lst1 lst3) max_idx
+          else true
+        )
+    )
+
+  let%test "[star d0] contains d0 and is reflexive and transitive" =
+    List.for_all trees ~f:(fun d0 ->
+        Idd.(
+          let starred = star mgr d0 in
+          let max1, max2 = index d0 + 1, index starred + 1 in
+          let max_idx = max max1 max2 in
+          (* contains d0 check *)
+          subseteq mgr d0 starred &&
+          (* reflexive check *)
+          subseteq mgr ident starred &&
+          (* transitive check *)
+          is_transitive starred max_idx
+        )
+      )
+
+  let%test "[star d0] is the smallest" =
+    List.for_all small_trees ~f:(fun d0 ->
+        Idd.(
+          let starred = star mgr d0 in
+          let max1 = index d0 + 1 in
+          List.for_all small_trees ~f:(fun d1 ->
+            let max2 = index d1 + 1 in
+            let max_idx = max max1 max2 in
+            if subseteq mgr ident d1 && subseteq mgr d0 d1 &&
+               is_transitive d1 max_idx
+            then subseteq mgr starred d1 else true
+          )
+        )
+    )
+
 end
