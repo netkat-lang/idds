@@ -22,6 +22,14 @@ let manager () : manager = {
   seq_cache = Hashtbl.create (module Pair);
 }
 
+let test mgr i b =
+  Dd.branch mgr.dd (Var.inp i) (if b then Dd.ctrue else Dd.cfalse)
+    (if b then Dd.cfalse else Dd.ctrue)
+
+let set mgr i b =
+  Dd.branch mgr.dd (Var.out i) (if b then Dd.ctrue else Dd.cfalse)
+    (if b then Dd.cfalse else Dd.ctrue)
+
 let rec eval' expl (tree:t) (env:Var.t -> bool) (n:int) =
   match tree with
   | False ->
@@ -86,7 +94,6 @@ let branch (mgr : manager) (x : Var.t) (hi : t) (lo : t) : t =
       Dd.branch mgr.dd x hi lo
     end
   (* ) *)
-
 
 let extract (d:t) (side:bool) : t =
   match d with
@@ -172,6 +179,16 @@ let rec seq mgr (d0:t) (d1:t) =
           (union mgr (seq mgr d0_01 d1_11) (seq mgr d0_00 d1_01))
           (union mgr (seq mgr d0_01 d1_10) (seq mgr d0_00 d1_00)))
     )
+
+let star mgr (d0:t) =
+  let rec loop curr prev =
+    if equal curr prev then prev else
+      loop (seq mgr curr curr) curr
+  in
+  loop (union mgr ident d0) ident
+
+let subseteq mgr (d0:t) (d1:t) =
+  equal (union mgr d0 d1) d1
 
 (* relational operations *)
 module Rel = struct
