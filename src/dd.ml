@@ -9,7 +9,7 @@ let id (t : t) : int =
   match t with
   | False -> -2
   | True -> -1
-  | Branch { id; _ } -> id
+  | Branch { id } -> id
 
 let index (d:t) : int =
   match d with
@@ -47,7 +47,7 @@ let equal (t1 : t) (t2 : t) : bool =
   match t1, t2 with
   | True, True | False, False ->
     true
-  | Branch { id=id1; _ }, Branch { id=id2; _ } ->
+  | Branch { id=id1 }, Branch { id=id2 } ->
     id1 = id2
   | _ ->
     false

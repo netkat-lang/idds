@@ -1,5 +1,5 @@
 (** Boolean variable on which a DD can branch. Morally just an integer, but
-    modeled as a record for type safety. *)
+    kept abstract for safety. *)
 
 type t [@@deriving compare, sexp, hash, eq]
 
