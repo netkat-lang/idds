@@ -1,7 +1,10 @@
 (** Boolean variable on which a DD can branch. Morally just an integer, but
     kept abstract for safety. *)
 
+open Base
+
 type t [@@deriving compare, sexp, hash, eq]
+include Comparator.S with type t := t
 
 val leaf_idx : int
 
