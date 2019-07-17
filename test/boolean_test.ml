@@ -54,7 +54,10 @@ module Make(A : Boolean.Algebra) = struct
           A.((var v && t1) || (!(var v) && t2))
         )
 
-    let formulas : A.t list = all_formulas n
+    let formulas : A.t list =
+      Array.iter vars (fun x -> ignore (A.declare_var x)) ;
+      all_formulas n
+
     let two_formulas : (A.t*A.t) list =
       List.cartesian_product formulas formulas
     let three_formulas : (A.t*A.t*A.t) list =
