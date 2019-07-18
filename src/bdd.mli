@@ -11,7 +11,8 @@ type t = private Dd.t
 val equal : t -> t -> bool
 
 type manager
-val manager : unit -> manager
+
+val manager : ?d_mgr:Dd.manager -> unit -> manager
 
 
 (** {2 Constructors} *)
@@ -34,6 +35,10 @@ val neg : manager -> t -> t
 (** [ite mgr i u v] behaves like [u] when variable [i] is true, and like [v]
     otherwise.*)
 val ite : manager -> Var.t -> t -> t -> t
+
+(** [test mgr var b] is the diagram that behaves like [b] when [var = true] and
+    like [not b] when [var = false] *)
+val test : manager -> Var.t -> bool -> t
 
 (** BDDs form a boolean algebra. *)
 module Make () : Boolean.Algebra

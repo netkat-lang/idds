@@ -7,7 +7,7 @@ let rec eval (t : t) ~(env : Var.t -> bool) : bool =
   | True -> true
   | False -> false
   | Branch { var; hi; lo; _ } ->
-    if env var then eval hi env else eval lo env
+    if env var then eval hi ~env:env else eval lo ~env:env
 
 let equal = Dd.equal
 let ctrue = Dd.ctrue
@@ -25,8 +25,8 @@ type manager = {
   neg_cache : (int, t) Hashtbl.t
 }
 
-let manager () : manager = {
-  dd = Dd.manager ();
+let manager ?d_mgr:(d_mgr=Dd.manager ()) () : manager = {
+  dd = d_mgr;
   conj_cache = Hashtbl.create (module Pair);
   disj_cache = Hashtbl.create (module Pair);
   neg_cache = Hashtbl.create (module Int);
@@ -112,6 +112,7 @@ let ite mgr var hi lo =
     (conj mgr (branch mgr.dd var ctrue cfalse) hi)
     (conj mgr (branch mgr.dd var cfalse ctrue) lo)
 
+let test mgr = Dd.test mgr.dd 
 
 
 module Make () : Boolean.Algebra with type t = t = struct

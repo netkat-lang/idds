@@ -8,7 +8,9 @@ type t = private Dd.t
 
 type manager
 
-val manager : unit -> manager
+val manager : ?d_mgr:Dd.manager -> unit -> manager
+
+val get_manager_dd : manager -> Dd.manager
 
 (** {2 Constructors} *)
 
@@ -17,6 +19,9 @@ val ident : t
 
 (** The empty relation. *)
 val empty : t
+
+(** Cast DD to IDD *)
+val idd_from_dd : Dd.manager -> Dd.t -> t
 
 (** For i < n,
   eval (test i b) env n =
