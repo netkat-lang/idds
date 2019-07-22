@@ -5,6 +5,7 @@ let ident = Dd.ctrue
 let empty = Dd.cfalse
 let equal = Dd.equal
 
+
 module Pair = struct
   type t = int * int
     [@@deriving sexp, compare, hash]
@@ -12,15 +13,19 @@ end
 
 type manager = {
   dd : Dd.manager;
+  bdd : Bdd.manager;
   union_cache : (Pair.t, t) Hashtbl.t;
   seq_cache : (Pair.t, t) Hashtbl.t;
 }
 
-let manager () : manager = {
+let manager ?bdd_mgr () : manager = {
   dd = Dd.manager ();
+  bdd = Option.value bdd_mgr ~default:(Bdd.manager ());
   union_cache = Hashtbl.create (module Pair);
   seq_cache = Hashtbl.create (module Pair);
 }
+
+let get_bdd_manager mgr = mgr.bdd
 
 let test mgr i b =
   Dd.branch mgr.dd (Var.inp i) (if b then Dd.ctrue else Dd.cfalse)
@@ -189,6 +194,8 @@ let star mgr (d0:t) =
 
 let subseteq mgr (d0:t) (d1:t) =
   equal (union mgr d0 d1) d1
+
+let of_bdd (bdd:Dd.t) : t = (bdd :> Dd.t)
 
 (* relational operations *)
 module Rel = struct

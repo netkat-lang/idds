@@ -42,7 +42,7 @@ let branch (mgr : manager) (var : Var.t) (hi : t) (lo : t) : t =
     mgr.next_id <- id + 1;
     Branch { var; hi; lo; id; }
   )
-
+  
 let equal (t1 : t) (t2 : t) : bool =
   match t1, t2 with
   | True, True | False, False ->

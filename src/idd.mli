@@ -8,7 +8,9 @@ type t = private Dd.t
 
 type manager
 
-val manager : unit -> manager
+val manager : ?bdd_mgr:Bdd.manager -> unit -> manager
+
+val get_bdd_manager : manager -> Bdd.manager
 
 (** {2 Constructors} *)
 
@@ -17,6 +19,11 @@ val ident : t
 
 (** The empty relation. *)
 val empty : t
+
+(** if [bdd] contains no output variables then 
+    Bdd.eval bdd ~env = Idd.(eval (of_bdd bdd) ~env);
+    otherwise, behavior is undefined *)
+val of_bdd : Bdd.t -> t
 
 (** For i < n,
   eval (test i b) env n =

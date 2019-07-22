@@ -68,7 +68,6 @@ val ctrue : t
     [var = true], and like [lo] when [var = false]. *)
 val branch : manager -> Var.t -> t -> t -> t
 
-
 (** {2 Generic operations on DDs} *)
 
 (** O(1) structural equality.
