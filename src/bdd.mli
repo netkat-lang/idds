@@ -12,7 +12,7 @@ val equal : t -> t -> bool
 
 type manager
 
-val manager : ?d_mgr:Dd.manager -> unit -> manager
+val manager : ?dd_mgr:Dd.manager -> unit -> manager
 
 
 (** {2 Constructors} *)

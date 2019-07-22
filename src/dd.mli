@@ -68,11 +68,6 @@ val ctrue : t
     [var = true], and like [lo] when [var = false]. *)
 val branch : manager -> Var.t -> t -> t -> t
 
-(** [test mgr var b] is the diagram that behaves like [b] when [var = true] and
-    like [not b] when [var = false] *)
-val test : manager -> Var.t -> bool -> t
-
-
 (** {2 Generic operations on DDs} *)
 
 (** O(1) structural equality.
