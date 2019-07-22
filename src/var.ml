@@ -9,6 +9,7 @@ module T = struct
   [@@deriving compare, sexp, hash, eq]
 end
 include T
+include Comparator.Make(T)
 
 let leaf_idx = -1
 

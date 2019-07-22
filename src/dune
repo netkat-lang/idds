@@ -4,6 +4,8 @@
   (wrapped true)
   (libraries
     base
+    open
+    unix
   )
   (preprocess (pps ppx_jane ppx_deriving.std))
 )

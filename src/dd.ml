@@ -64,3 +64,55 @@ let rec to_string (t : t) : string =
       (Var.to_string var)
       (to_string hi)
       (to_string lo)
+
+let to_dot ?(var_name=Var.to_string) (t : t) : string =
+  let open Caml.Format in
+  let buf = Buffer.create 200 in
+  let fmt = formatter_of_buffer buf in
+  let seen : int Hash_set.t = Hash_set.create (module Int) in
+  let at_rank : (t list) Map.M(Var).t ref  = ref (Map.empty (module Var)) in
+  pp_set_margin fmt (1 lsl 29);
+  fprintf fmt "digraph \"decision diagram\" {@\n";
+  let rec loop t =
+    if not (Hash_set.mem seen (id t)) then begin
+      Hash_set.add seen (id t);
+      match t with
+      | False ->
+        fprintf fmt "%d [shape=box label=\"⊥\"];@\n" (id t)
+      | True ->
+        fprintf fmt "%d [shape=box label=\"⊤\"];@\n" (id t)
+      | Branch { var; lo; hi; id=id_t } ->
+        at_rank := Map.add_multi (!at_rank) ~key:var ~data:t;
+        fprintf fmt "%d [label=\"%s\"];@\n" id_t (var_name var);
+        fprintf fmt "%d -> %d;@\n" id_t (id hi);
+        fprintf fmt "%d -> %d [style=\"dashed\"];@\n" id_t (id lo);
+        loop hi;
+        loop lo;
+    end
+  in
+  loop t;
+  Map.iter (!at_rank) ~f:(fun ts ->
+    fprintf fmt "{rank=same; ";
+    List.iter ts ~f:(fun t -> fprintf fmt "%d " (id t));
+    fprintf fmt ";}@\n");
+  fprintf fmt "}@.";
+  Buffer.contents buf
+
+let compile_dot ?(format="pdf") ?(engine="dot") ?(title=engine) data : string =
+  let output_file =
+    Caml.Filename.(temp_file (title ^ "_") ("." ^ format))
+    |> String.tr ~target:' ' ~replacement:'-'
+  in
+  let to_dot =
+    Unix.open_process_out (Printf.sprintf "dot -T%s -o %s" format output_file)
+  in
+  Caml.output_string to_dot data;
+  Caml.close_out to_dot;
+  ignore (Unix.close_process_out to_dot);
+  output_file
+
+let render ?var_name ?(format="pdf") ?(title="Decision Diagram") t =
+  to_dot ?var_name t
+  |> compile_dot ~format ~title
+  |> Open.in_default_app
+  |> ignore

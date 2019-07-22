@@ -3,6 +3,8 @@ name: "idd"
 depdens: [
   "dune" {build}
   "base"
+  "open"
+  "unix"
   "ppx_jane"
-  "ppx_inline_test"
+  "ppx_inline_test" {test}
 ]

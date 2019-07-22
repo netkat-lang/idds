@@ -83,6 +83,8 @@ val equal : t -> t -> bool
 
 val to_string : t -> string
 
+val render : ?var_name:(Var.t -> string) -> ?format:string -> ?title: string -> t -> unit
+
 
 (** {2 Low-level API} *)
 
