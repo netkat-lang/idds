@@ -14,6 +14,8 @@ type manager
 
 val manager : ?dd_mgr:Dd.manager -> unit -> manager
 
+val get_dd_manager : manager -> Dd.manager
+
 
 (** {2 Constructors} *)
 

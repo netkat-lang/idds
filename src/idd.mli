@@ -1,5 +1,6 @@
 (** Identity Suppressed Decision Diagrams (IDDs). *)
 
+
 (** {2 Types} *)
 
 (** An IDD is just a DD with two additional structural constraints that ensure
@@ -12,6 +13,7 @@ val manager : ?bdd_mgr:Bdd.manager -> unit -> manager
 
 val get_bdd_manager : manager -> Bdd.manager
 
+
 (** {2 Constructors} *)
 
 (** The identity relation. *)
@@ -20,7 +22,7 @@ val ident : t
 (** The empty relation. *)
 val empty : t
 
-(** if [bdd] contains no output variables then 
+(** if [bdd] contains no output variables then
     Bdd.eval bdd ~env = Idd.(eval (of_bdd bdd) ~env);
     otherwise, behavior is undefined *)
 val of_bdd : Bdd.t -> t
@@ -56,6 +58,7 @@ val union : manager -> t -> t -> t
 (** (Relational) transitive-reflexive closure  *)
 val star : manager -> t -> t
 
+
 (** {2 Boolean operations} *)
 
 (** O(1) structural equality.
@@ -66,6 +69,7 @@ val equal : t -> t -> bool
 
 (** relational containment *)
 val subseteq : manager -> t -> t -> bool
+
 
 (** {2 Semantics} *)
 

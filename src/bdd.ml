@@ -32,6 +32,9 @@ let manager ?dd_mgr () : manager = {
   neg_cache = Hashtbl.create (module Int);
 }
 
+let get_dd_manager mgr = mgr.dd
+
+
 let branch mgr var hi lo =
   if Dd.equal hi lo then
     hi
@@ -115,7 +118,7 @@ let ite mgr var hi lo =
 
 let test mgr var b =
   branch mgr.dd var (if b then ctrue else cfalse) (if b then cfalse else ctrue)
-    
+
 
 module Make () : Boolean.Algebra with type t = t = struct
   let vars : (string, int) Hashtbl.t = Hashtbl.create (module String)

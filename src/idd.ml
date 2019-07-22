@@ -18,12 +18,13 @@ type manager = {
   seq_cache : (Pair.t, t) Hashtbl.t;
 }
 
-let manager ?bdd_mgr () : manager = {
-  dd = Dd.manager ();
-  bdd = Option.value bdd_mgr ~default:(Bdd.manager ());
-  union_cache = Hashtbl.create (module Pair);
-  seq_cache = Hashtbl.create (module Pair);
-}
+let manager ?bdd_mgr () : manager =
+  let bdd = Option.value bdd_mgr ~default:(Bdd.manager ()) in
+  { bdd;
+    dd = Bdd.get_dd_manager bdd;
+    union_cache = Hashtbl.create (module Pair);
+    seq_cache = Hashtbl.create (module Pair);
+  }
 
 let get_bdd_manager mgr = mgr.bdd
 
@@ -195,7 +196,7 @@ let star mgr (d0:t) =
 let subseteq mgr (d0:t) (d1:t) =
   equal (union mgr d0 d1) d1
 
-let of_bdd (bdd:Dd.t) : t = (bdd :> Dd.t)
+let of_bdd (bdd:Bdd.t) : t = (bdd :> Dd.t)
 
 (* relational operations *)
 module Rel = struct
