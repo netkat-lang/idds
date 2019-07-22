@@ -195,7 +195,7 @@ let star mgr (d0:t) =
 let subseteq mgr (d0:t) (d1:t) =
   equal (union mgr d0 d1) d1
 
-let of_dd (dd:Dd.t) : t = dd
+let of_bdd (bdd:Dd.t) : t = (bdd :> Dd.t)
 
 (* relational operations *)
 module Rel = struct

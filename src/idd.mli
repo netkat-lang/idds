@@ -20,8 +20,10 @@ val ident : t
 (** The empty relation. *)
 val empty : t
 
-(** Cast DD to IDD *)
-val of_dd : Dd.t -> t
+(** if [bdd] contains no output variables then 
+    Bdd.eval bdd ~env = Idd.(eval (of_bdd bdd) ~env);
+    otherwise, behavior is undefined *)
+val of_bdd : Bdd.t -> t
 
 (** For i < n,
   eval (test i b) env n =
