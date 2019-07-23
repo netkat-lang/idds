@@ -1,4 +1,4 @@
-open Idd_
+open Idds
 open Base
 
 let index (idd : Idd.t) = Dd.index (idd :> Dd.t)

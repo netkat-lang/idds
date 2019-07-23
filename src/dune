@@ -1,6 +1,5 @@
 (library
-  (name idd_)
-  (public_name idd)
+  (public_name idds)
   (wrapped true)
   (libraries
     base

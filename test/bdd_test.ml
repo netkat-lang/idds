@@ -1,4 +1,4 @@
-open Idd_
+open Idds
 open Base
 
 module A : Boolean.Algebra = Bdd.Make()

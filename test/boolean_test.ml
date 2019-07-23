@@ -1,4 +1,4 @@
-open Idd_
+open Idds
 open Base
 
 module Make(A : Boolean.Algebra) = struct
