@@ -13,9 +13,12 @@ script:
 - echo "yes" | sudo add-apt-repository ppa:avsm/ppa
 - sudo apt-get update -qq
 - sudo apt-get install -qq opam
+- export OPAMYES=1
 - opam init --auto-setup --compiler=$OCAML
 - eval `opam config env`
-- opam pin add --no-action $PACKAGE .
+# since we're caching .opam, packets may be outdated
+- opam upgrade --yes --all
+- opam pin add --yes --no-action $PACKAGE .
 - opam install --yes --deps-only $PACKAGE
 - opam install --yes --verbose --build-doc --build-test --keep-build-dir $PACKAGE
 - bash -ex .travis.docgen.sh
