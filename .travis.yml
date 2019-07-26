@@ -5,5 +5,7 @@ services:
 install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-docker.sh
 script: bash ./.travis-docker.sh
 env:
+ global:
+   - TESTS=true
  matrix:
    - DISTRO=ubuntu OCAML_VERSION=4.08
