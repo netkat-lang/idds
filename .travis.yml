@@ -2,9 +2,6 @@ language: c
 cache:
   directories:
   - /home/travis/.opam/
-os:
-  - linux
-  - osx
 env:
   global:
   - PACKAGE=idds
