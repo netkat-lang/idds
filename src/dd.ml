@@ -9,12 +9,12 @@ let id (t : t) : int =
   match t with
   | False -> -2
   | True -> -1
-  | Branch { id } -> id
+  | Branch { id; _ } -> id
 
 let index (d:t) : int =
   match d with
   | True | False -> Var.leaf_idx
-  | Branch { var } -> Var.index var
+  | Branch { var; _ } -> Var.index var
 
 
 module Triple = struct
@@ -47,7 +47,7 @@ let equal (t1 : t) (t2 : t) : bool =
   match t1, t2 with
   | True, True | False, False ->
     true
-  | Branch { id=id1 }, Branch { id=id2 } ->
+  | Branch { id=id1; _ }, Branch { id=id2; _ } ->
     id1 = id2
   | _ ->
     false
@@ -56,7 +56,7 @@ let rec to_string (t : t) : string =
   match t with
   | True -> "1"
   | False -> "0"
-  | Branch { var; hi; lo } ->
+  | Branch { var; hi; lo; _ } ->
     Caml.Format.sprintf "(%s ? %s : %s)"
       (Var.to_string var)
       (to_string hi)

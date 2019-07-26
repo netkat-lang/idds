@@ -77,6 +77,3 @@ val subseteq : manager -> t -> t -> bool
     variable indices are 0,...,[n-1] *)
 val eval : t -> (Var.t -> bool) -> int -> bool
 
-module Rel : Algebra.KAT with
-  type b := Bdd.t and
-  type t := t
