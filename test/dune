@@ -1,9 +1,0 @@
-(library
-  (name tests)
-  (libraries
-    base
-    idds
-  )
-  (preprocess (pps ppx_inline_test))
-  (inline_tests)
-)
