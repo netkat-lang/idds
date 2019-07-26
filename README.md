@@ -43,3 +43,13 @@ let flip = Idd.(union mgr (seq mgr (test mgr 3 true) (set mgr 3 false))
                           (seq mgr (test mgr 3 false) (set mgr 3 true)));;
 Dd.render (flip :> Dd.t)
 ```
+
+# Build and test
+To build from source execute
+```
+dune build
+```
+To run all tests execute
+```
+dune runtest
+```
