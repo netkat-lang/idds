@@ -15,7 +15,6 @@ fi
 
 DOCSRC=$(opam config var ${PACKAGE}:build)/_build/default/_doc/_html
 DOCDIR=.gh-pages
-if [ -n "$KEEP" ]; then trap "rm -rf $DOCDIR" EXIT; fi
 rm -rf $DOCDIR
 
 # Error out if $GH_TOKEN is empty or unset
