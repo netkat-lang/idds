@@ -1,5 +1,5 @@
 # IDDs: Identity-suppressed Decision Diagrams [![Build Status](https://travis-ci.org/netkat-lang/idds.svg?branch=master)](https://travis-ci.org/netkat-lang/idds)
-This package implements hash-consed binary decision diagrams (BDDs) and identity-suppressed decision diagrams (IDDs).  
+This package implements hash-consed binary decision diagrams (BDDs) and identity-suppressed decision diagrams (IDDs).
 [The API is documented here](https://netkat-lang.github.io/idds/).
 ## Overview
 
