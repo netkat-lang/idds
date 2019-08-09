@@ -1,13 +1,12 @@
 #!/bin/bash
 # From https://github.com/simonjbeaumont/ocaml-travis-gh-pages
 
-set -e
 # Make sure we're not echoing any sensitive data
 set +x
 set -o errexit -o nounset
 
-if [[ -z "$TRAVIS" || "$TRAVIS_PULL_REQUEST" != "false" || "$TRAVIS_BRANCH" != "master" ]]; then
-  echo "[docgen] This is not a push-to-master Travis build, doing nothing..."
+if [[ -z "$TRAVIS" || "$TRAVIS_OS_NAME" != "linux" || "$TRAVIS_PULL_REQUEST" != "false" || "$TRAVIS_BRANCH" != "master" ]]; then
+  echo "[docgen] This is not a push-to-master linux Travis build, doing nothing..."
   exit 0
 else
   echo "[docgen] Updating docs on Github pages..."
@@ -33,4 +32,3 @@ git -C $DOCDIR add .
 git -C $DOCDIR commit --allow-empty -m "Travis build $TRAVIS_BUILD_NUMBER pushed docs to gh-pages"
 git -C $DOCDIR push origin gh-pages 2>&1 | sed -e "s/$GH_TOKEN/!REDACTED!/g"
 echo "[docgen] updated docs successfully!"
-

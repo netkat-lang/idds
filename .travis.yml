@@ -1,24 +1,26 @@
 language: c
 cache:
   directories:
-  - /home/travis/.opam/
+  - "$HOME/.opam/"
+before_cache:
+  - opam remove --yes $PACKAGE; opam pin remove --yes $PACKAGE
+  - opam clean
+os:
+  - linux
 env:
   global:
   - PACKAGE=idds
+  - OPAMYES=1
+  - OPAMSKIPUPDATE=1
   - secure: PWCVomLGCBuPHY4oKBDmCS8Je9ub/8Yg/9kM/fU2pCxv+cExFKgl6/z09jTwZ4AdXvFaooMY6dyWUZtRVY6Y6SSHfT6ZVJh08uVaEh9yuMTP0JtL9KxDvqRL2Vu34dhKe61S8hyElk+jDcQNn5maV5vxfqMAaGdhAdAQg9tgRNkxUujC2wG7dc7Ie4W6gKzRv/x3laS40TkKO/5U9K1/58cPgJu+sVVYjusrMCNDmoyo49+tJXs1NGjC9HCzmtArMtQWY7Ayc3xtZHLsjEQg5OuA/pd/C41ut4mehPiLPmuWed+j9OXIeudddfx7LWJV7VZBamirkkPohFbbPfZAKmSJ+KUioPiA+cyK91mil5rFrxP1602ga0LozyRpO1Cub61PV/lJ6SOVIm6mfZg0Y4vymu6djvq7Uirlr6YteUMKyMRXloWyXVIeL7unA5uEkhuFG5DX3dbhvymTLaUjSkOUvh/AR2yAzLikrwcG6Z/OPVWScOZm1y1YfI/K+8+AUd2ixBlkmGIsQFrVlPGtxrs93x1sZov15LmCNBzaIgyDH9r8dof+9v4hE1A1M5Nj6n4qQxwDnw3dZ1shyPyN4lu/1YVQ4rlWSLKs5PXyNEo/VkfKULJNRJCaq+hiMjVbMtPIsTz9CFuS/DKbAFad4zCAHrHOOwsYzNnmtWte3g8=
   matrix:
   - OCAML=4.07.1
-  - OCAML=4.08.0
+  - OCAML=4.08.1
+addons:
+  apt:
+    packages: opam
+    sources:
+    - sourceline: 'ppa:avsm/ppa'
 script:
-- echo "yes" | sudo add-apt-repository ppa:avsm/ppa
-- sudo apt-get update -qq
-- sudo apt-get install -qq opam
-- export OPAMYES=1
-- opam init --auto-setup --compiler=$OCAML
-- eval `opam config env`
-# since we're caching .opam, packets may be outdated
-- opam upgrade --yes --all
-- opam pin add --yes --no-action $PACKAGE .
-- opam install --yes --deps-only $PACKAGE
-- opam install --yes --verbose --build-doc --build-test --keep-build-dir $PACKAGE
-- bash -ex .travis.docgen.sh
+- bash -exuv ci/travis.test.sh
+- bash -exuv ci/travis.docgen.sh
