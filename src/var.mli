@@ -24,8 +24,8 @@ type closer_to_root = Left | Right | Equal
     in the same, ordered IDD, [v0] or [v1] would appear closer to the root. *)
 val closer_to_root : t -> t -> closer_to_root
 
-(** [closer_to_root idx0 idx1] is whether or not a variable with index [idx0]
-    goes closer to the root of an ordered IDD than a variable with index [idx1] *)
+(** [idx_strictly_closer_to_root idx0 idx1] is whether a variable with index [idx0]
+    is closer to the root of an ordered IDD than a variable with index [idx1] *)
 val idx_strictly_closer_to_root : int -> int -> bool
 
 val to_string : t -> string

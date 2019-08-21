@@ -76,7 +76,7 @@ val branch : manager -> Var.t -> t -> t -> t
     were built using the same manager. Otherwise, the result is arbitrary. *)
 val equal : t -> t -> bool
 
-val to_string : t -> string
+val to_string : ?var_name:(Var.t -> string) -> t -> string
 
 val render : ?var_name:(Var.t -> string) -> ?format:string -> ?title: string -> t -> unit
 

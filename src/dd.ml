@@ -52,15 +52,16 @@ let equal (t1 : t) (t2 : t) : bool =
   | _ ->
     false
 
-let rec to_string (t : t) : string =
+let rec to_string ?(var_name=Var.to_string) (t : t) : string =
   match t with
   | True -> "1"
   | False -> "0"
   | Branch { var; hi; lo; _ } ->
     Caml.Format.sprintf "(%s ? %s : %s)"
-      (Var.to_string var)
-      (to_string hi)
-      (to_string lo)
+      (var_name var)
+      (to_string ~var_name hi)
+      (to_string ~var_name lo)
+
 
 let to_dot ?(var_name=Var.to_string) (t : t) : string =
   let open Caml.Format in
