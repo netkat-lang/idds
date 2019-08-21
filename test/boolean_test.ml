@@ -55,7 +55,7 @@ module Make(A : Boolean.Algebra) = struct
         )
 
     let formulas : A.t list =
-      Array.iter vars (fun x -> ignore (A.declare_var x)) ;
+      Array.iter vars ~f:(fun x -> ignore (A.declare_var x)) ;
       all_formulas n
 
     let two_formulas : (A.t*A.t) list =
