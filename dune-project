@@ -6,10 +6,12 @@
 (license MIT)
 (authors "Steffen Smolka <smolka@cs.cornell.edu>")
 (maintainers "Steffen Smolka <smolka@cs.cornell.edu>")
+(documentation "https://netkat-lang.github.io/idds/")
 
 (package
   (name idds)
   (synopsis "Identity-suppressed decision diagrams (IDDs)")
+  (description "BDD and IDD implementation with hash-consing")
   (depends
     (ocaml (>= 4.04.0))
     (dune (and :build (>= 1.10)))
