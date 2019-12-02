@@ -4,6 +4,7 @@
 (name idds)
 (source (github netkat-lang/idds))
 (license MIT)
+(version 0.2)
 (authors "Steffen Smolka <smolka@cs.cornell.edu>")
 (maintainers "Steffen Smolka <smolka@cs.cornell.edu>")
 (documentation "https://netkat-lang.github.io/idds/")
