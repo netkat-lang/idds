@@ -6,5 +6,5 @@
     open
     unix
   )
-  (preprocess (pps ppx_jane ppx_deriving.std))
+  (preprocess (pps ppx_jane -allow-unannotated-ignores ppx_deriving.std))
 )
