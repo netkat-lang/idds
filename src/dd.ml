@@ -106,11 +106,11 @@ let compile_dot ?(format="pdf") ?(engine="dot") ?(title=engine) data : string =
   in
   Caml.output_string to_dot data;
   Caml.close_out to_dot;
-  ignore (Unix.close_process_out to_dot);
+  ignore ((Unix.close_process_out to_dot) : Unix.process_status);
   output_file
 
 let render ?var_name ?(format="pdf") ?(title="Decision Diagram") t =
-  to_dot ?var_name t
-  |> compile_dot ~format ~title
-  |> Open.in_default_app
-  |> ignore
+  ignore (to_dot ?var_name t
+          |> compile_dot ~format ~title
+          |> Open.in_default_app : bool)
+  

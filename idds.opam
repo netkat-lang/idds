@@ -10,9 +10,12 @@ maintainer: ["Steffen Smolka <smolka@cs.cornell.edu>"]
 authors: ["Steffen Smolka <smolka@cs.cornell.edu>"]
 bug-reports: "https://github.com/netkat-lang/idds/issues"
 homepage: "https://github.com/netkat-lang/idds"
+doc: "https://netkat-lang.github.io/idds/"
 license: "MIT"
+version: "0.2"
 dev-repo: "git+https://github.com/netkat-lang/idds.git"
 synopsis: "Identity-suppressed decision diagrams (IDDs)"
+description: "BDD and IDD implementation with hash-consing"
 depends: [
   "ocaml" {>= "4.04.0"}
   "dune" {build & >= "1.10"}
